@@ -1,5 +1,6 @@
 import { Token } from "../Tokenizer/Token";
 import { create, getAnsiColorCode, ignoreInLogging, indentationString, syntaxColors } from "../Utils/Utils";
+import { Zingle } from "./Zingle";
 
 export class SyntacticElement {
     @ignoreInLogging()
@@ -23,26 +24,28 @@ export class SyntacticElement {
             str += tokens[i].value;
 
             if(i == this.endIndex - 1) continue;
-            if(tokens[i + 1]?.value.match(/[,.;()[\]]/)) continue;
+            if(tokens[i + 1]?.value.match(/[,.;:()[\]]/)) continue;
             if(tokens[i]?.value.match(/[([.!]/)) continue;
 
             str += " "
 
             if(!canDoMultiline) continue;
 
-            if(["{", ";", "}"].includes(tokens[i]?.value) && !["else"].includes(tokens[i + 1]?.value)) {
+            if(["{", ";", ":", "}"].includes(tokens[i]?.value) && !["else"].includes(tokens[i + 1]?.value)) {
                 str += newLine;
 
-                if(tokens[i].value == "{") {
+                if(["{"].includes(tokens[i].value)) {
                     indent++;
                 }
                 
-                if(tokens[i + 1]?.value == "}") {
+                if("}".includes(tokens[i + 1]?.value)) {
                     indent--;
 
                     if(tokens[i].value == "{") {
                         str += newLine;
                     }
+                } else if(!["{", ":"].includes(tokens[i].value)) {
+                    str += newLine;
                 }
 
                 str += "  ".repeat(indent)
@@ -56,7 +59,7 @@ export class SyntacticElement {
         return str;
     }
 
-    static fromTokens(tokens: Token[], startIndex: number): SyntacticElement | Token {
+    static fromTokens(tokens: Token[], startIndex: number): SyntacticElement | Zingle {
         return create(new SyntacticElement(), obj => {
             obj.tokenSource = tokens;
             obj.startIndex = startIndex;

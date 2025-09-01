@@ -2,12 +2,23 @@ import { Token } from "../Tokenizer/Token";
 import { create, yourtakingtoolong } from "../Utils/Utils";
 import { Expression } from "./Expression";
 import { IfStatement } from "./LineContent/IfStatement";
-import { LocalDeclaration } from "./LineContent/LocalDeclaration";
+import { LineContent } from "./LineContent/LineContent";
+import { BreakStatement } from "./LineContent/BreakStatement";
 import { ReturnStatement } from "./LineContent/ReturnStatement";
+import { SwitchStatement } from "./LineContent/SwitchStatement";
 import { SyntacticElement } from "./SyntacticElement";
+import { ContinueStatement } from "./LineContent/ContinueStatement";
+
+const keywordToLineContentCreator: Record<string, typeof SyntacticElement.fromTokens> = {
+    "return": ReturnStatement.fromTokens,
+    "break": BreakStatement.fromTokens,
+    "continue": ContinueStatement.fromTokens,
+    "switch": SwitchStatement.fromTokens,
+    "if": IfStatement.fromTokens,
+}
 
 export class Line extends SyntacticElement {
-    body: Expression | LocalDeclaration | ReturnStatement | IfStatement;
+    body: Expression | LineContent;
 
     static fromTokens(tokens: Token[], startIndex: number): Line {
         let i = startIndex;
@@ -16,16 +27,13 @@ export class Line extends SyntacticElement {
             obj.tokenSource = tokens;
         });
 
-        if(tokens[i].value == "return") {
-            let returnStatement = ReturnStatement.fromTokens(tokens, i);
+        let lineContentCreator = keywordToLineContentCreator[tokens[i].value];
 
-            self.body = returnStatement;
-            i = returnStatement.endIndex;
-        } else if(tokens[i].value == "if") {
-            let ifStatement = IfStatement.fromTokens(tokens, i);
+        if(lineContentCreator) {
+            let instance = lineContentCreator(tokens, i);
 
-            self.body = ifStatement;
-            i = ifStatement.endIndex;
+            self.body = instance;
+            i = instance.endIndex;
         } else {
             let expression = Expression.fromTokens(tokens, i) as Expression;
 

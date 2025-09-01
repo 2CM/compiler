@@ -55,9 +55,10 @@ export class IfStatement extends LineContent {
             }
 
             if(tokens[i].checkValueOrThrow("{")) {
-                ifBody = Body.fromTokens(tokens, i);
+                i++;
 
-                i = ifBody.endIndex;
+                ifBody = Body.fromTokens(tokens, i);
+                i = ifBody.endIndex + 1;
             }
 
             if(!ifBody) throw new Error("no if body");

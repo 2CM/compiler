@@ -49,12 +49,12 @@ export class Token {
         let index = 0;
         let regex = new RegExp(
             [
-                /(?<keyword>class|return|public|private|protected|override|virtual|abstract|static|extends|if|else)/,
+                /(?<keyword>class|return|public|private|protected|override|virtual|abstract|static|extends|if|else|switch|case|default|break|continue)/,
                 /(?<literal>(-?\d+(\.\d+)?|("[^"]+")|true|false))/,
                 /(?<identifier>[A-Z|a-z]([A-Z|a-z|0-9]+)?)/,
                 `(?<operator>(${Object.keys(Operation.operatorStrToOperation).map(str => cleanStringForRegex(str)).join("|")}))`,
                 // `(?<operator>(${["+", "-"].map(str => cleanStringForRegex(str)).join("|")}))`,
-                /(?<separator>[()[\]{};])/,
+                /(?<separator>[()[\]{};:])/,
                 /(?<whitespace>[\n\s]+)/,
             ].map(regex => regex instanceof RegExp ? regex.source : regex).join("|"),
             "y"

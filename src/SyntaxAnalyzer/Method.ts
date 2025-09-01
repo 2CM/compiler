@@ -56,10 +56,12 @@ export class Method extends SyntacticElement {
             yourtakingtoolong();
 
             if(tokens[i].value == "{") {
+                i++;
+
                 let body = Body.fromTokens(tokens, i);
                 
                 self.body = body;
-                self.endIndex = body.endIndex;
+                self.endIndex = body.endIndex + 1;
 
                 break;
             }

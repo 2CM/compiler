@@ -145,7 +145,7 @@ export class Expression extends SyntacticElement {
 
                         components.push(subExpression);
                         i = subExpression.endIndex;
-                    } else if([")", "]", ";"].includes(tokens[i].value)) {
+                    } else if([")", "]", ";", ":"].includes(tokens[i].value)) {
                         return create(Expression.fromComponents(components), obj => {
                             obj.tokenSource = tokens
                             obj.startIndex = startIndex
