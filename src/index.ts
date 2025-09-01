@@ -18,29 +18,16 @@ public static class Bello extends bongle, zongle {
     Int32 fieldbuh = 6 + 2;
 
     Int32 Bingle(Int32 buh, Int32 ouh) {
-        switch(5 + 2) {
-            case < yes:
-                5 + 5;
-
-                break;
-            case no:
-                1 + 1;
-            case maybe:
-                1 + 1;
-
-                break;
-            default:
-                return;
-        }
-
-        if(5 + 2) {
-            continue;
+        for(Int32 b = 5; b < 2; b += 1) {
+        
         }
 
         return true;
     }
 }
 `);
+
+console.log(tokenized)
 
 var tree = SyntaxTree.fromTokens(tokenized);
 

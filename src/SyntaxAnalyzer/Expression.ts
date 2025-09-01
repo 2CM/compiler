@@ -15,7 +15,7 @@ export class Expression extends SyntacticElement {
     operation: Operator;
 
     static fromComponents(components: (Zingle | Operator)[]): Zingle {
-        console.log(components)
+        // console.log(components)
 
         for(let i = 0; i < Operation.operationLevels.length; i++) {
             let operationLevel = Operation.operationLevels[i];
