@@ -14,49 +14,99 @@ export class SyntacticElement {
 
     tokenSection = function(this: SyntacticElement, linePrefix: string = "") {
         let tokens = this.tokenSource;
-        let str = "";
-        let multiline = false;
-        let indent = 0;
-        let canDoMultiline = this.endIndex - this.startIndex > 5;
+        let stringSource = tokens[0].stringSource;
+        let start = tokens[this.startIndex].stringStartIndex;
+        let end = tokens[this.endIndex - 1].stringEndIndex;
+
         let newLine = "\n" + linePrefix + indentationString + getAnsiColorCode(syntaxColors.string)
 
-        for(let i = this.startIndex; i < this.endIndex; i++) {
-            str += tokens[i].value;
+        return stringSource.slice(start, end).replaceAll("\n", newLine);
 
-            if(i == this.endIndex - 1) continue;
-            if(tokens[i + 1]?.value.match(/[,.;:()[\]]/)) continue;
-            if(tokens[i]?.value.match(/[([.!]/)) continue;
+        // let indentationOffset = 0;
 
-            str += " "
+        // let str = ""
 
-            if(!canDoMultiline) continue;
+        // for(let i = 0; true; i++) {
+        //     if(stringSource[start - i] == "\n") {
+        //         indentationOffset = i - 1;
 
-            if(["{", ";", ":", "}"].includes(tokens[i]?.value) && !["else"].includes(tokens[i + 1]?.value)) {
-                str += newLine;
+        //         break;
+        //     }
+        // }
+        
+        // let lines = stringSource.slice(start, end).split("\n");
 
-                if(["{"].includes(tokens[i].value)) {
-                    indent++;
-                }
+        // console.log(lines)
+        // console.log(indentationOffset)
+
+        // str += "\n"
+        // str += lines[0];
+        // str += "\n"
+
+        // for(let i = 1; i < lines.length; i++) {
+        //     let line = lines[i];
+        //     let lineStart = 0;
+
+        //     for(let j = 0; j < line.length; j += 4) {
+        //         if(line[j] != "\s") {
+        //             lineStart = j;
+
+        //             break;
+        //         }
+        //     }
+
+        //     str += `${"  ".repeat(lineStart/4 - indentationOffset/4)}${line.slice(lineStart)}\n`
+        // }
+
+        // return str;
+
+        // return newLine + tokens[0].stringSource
+        //     .slice(tokens[this.startIndex].stringStartIndex, tokens[this.endIndex - 1].stringEndIndex)
+        //     .replaceAll("\n", newLine)
+        //     .replaceAll("    ", "  ")
+
+        // let str = "";
+        // let multiline = false;
+        // let indent = 0;
+        // let canDoMultiline = this.endIndex - this.startIndex > 5;
+
+        // for(let i = this.startIndex; i < this.endIndex; i++) {
+        //     str += tokens[i].value;
+
+        //     if(i == this.endIndex - 1) continue;
+        //     if(tokens[i + 1]?.value.match(/[,.;:()[\]]/)) continue;
+        //     if(tokens[i]?.value.match(/[([.!]/)) continue;
+
+        //     str += " "
+
+        //     if(!canDoMultiline) continue;
+
+        //     if(["{", ";", ":", "}"].includes(tokens[i]?.value) && !["else"].includes(tokens[i + 1]?.value)) {
+        //         str += newLine;
+
+        //         if(["{"].includes(tokens[i].value)) {
+        //             indent++;
+        //         }
                 
-                if("}".includes(tokens[i + 1]?.value)) {
-                    indent--;
+        //         if("}".includes(tokens[i + 1]?.value)) {
+        //             indent--;
 
-                    if(tokens[i].value == "{") {
-                        str += newLine;
-                    }
-                } else if(!["{", ":"].includes(tokens[i].value)) {
-                    str += newLine;
-                }
+        //             if(tokens[i].value == "{") {
+        //                 str += newLine;
+        //             }
+        //         } else if(!["{", ":"].includes(tokens[i].value)) {
+        //             str += newLine;
+        //         }
 
-                str += "  ".repeat(indent)
+        //         str += "  ".repeat(indent)
 
-                multiline = true;
-            }
-        }
+        //         multiline = true;
+        //     }
+        // }
 
-        if(multiline) str = newLine + str;
+        // if(multiline) str = newLine + str;
 
-        return str;
+        // return str;
     }
 
     static match(tokens: Token[], i: number): boolean {

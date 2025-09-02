@@ -1,6 +1,6 @@
 import { Operation } from "../SyntaxAnalyzer/Operation";
 import { Keyword } from "../SyntaxAnalyzer/TokenContainers/Keyword";
-import { cleanStringForRegex, color, enumValue, ignoreInLogging, syntaxColors, yourtakingtoolong } from "../Utils/Utils";
+import { cleanStringForRegex, color, create, enumValue, ignoreInLogging, syntaxColors, yourtakingtoolong } from "../Utils/Utils";
 
 export enum TokenType {
     Identifier,
@@ -16,20 +16,19 @@ export class Token {
     value: string;
     
     @ignoreInLogging()
-    startIndex: number;
+    index: number;
     
     @ignoreInLogging()
-    endIndex: number;
-
-    @ignoreInLogging()
-    tokenSource: Token[]
+    tokenSource: Token[];
     
-    constructor(type: TokenType, value: string, startIndex: number, endIndex: number) {
-        this.type = type;
-        this.value = value;
-        this.startIndex = startIndex;
-        this.endIndex = endIndex;
-    }
+    @ignoreInLogging()
+    stringStartIndex: number;
+    
+    @ignoreInLogging()
+    stringEndIndex: number;
+    
+    @ignoreInLogging()
+    stringSource: string;
 
     checkTypeOrThrow(type: TokenType) {
         if(this.type == type) return true;
@@ -74,27 +73,35 @@ export class Token {
         while(index < str.length) {
             yourtakingtoolong()
 
-            let match = str.match(regex)
+            let match = str.match(regex);
 
             if(match) {
-                index += match[0].length
-
+                //what is this doing
+                index += match[0].length;
+                
                 if(match.groups?.whitespace) {
                     continue;
                 }
-
+                
                 let type =
                     match.groups?.keyword ? TokenType.Keyword : 
                     match.groups?.literal ? TokenType.Literal : 
                     match.groups?.identifier ? TokenType.Identifier : 
                     match.groups?.operator ? TokenType.Operator: 
                     match.groups?.separator ? TokenType.Separator : null;
-
+                
                 if(type === null) {
                     throw new Error("unexpected token " + match[0])
                 }
-
-                tokens.push(new Token(type, match[0], tokens.length, tokens.length + 1));
+                
+                tokens.push(create(new Token(), obj => {
+                    obj.type = type
+                    obj.value = match[0]
+                    obj.index = tokens.length
+                    obj.stringSource = str
+                    obj.stringStartIndex = index - match[0].length
+                    obj.stringEndIndex = index
+                }));
             } else {
                 throw new Error("no match")
             }
