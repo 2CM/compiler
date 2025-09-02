@@ -11,12 +11,12 @@ export class IfStatement extends LineContent {
     ifBodies: Body[] = [];
     elseBody: Body;
 
+    static match(tokens: Token[], i: number) {
+        return tokens[i].value == "if";
+    }
+
     static fromTokens(tokens: Token[], startIndex: number) {
-        let i = startIndex;
-        let self = create(new IfStatement(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
+        let [self, i] = super.initialize(tokens, startIndex, this);
 
         while(i < tokens.length) {
             let ifCondition: Zingle | null = null;

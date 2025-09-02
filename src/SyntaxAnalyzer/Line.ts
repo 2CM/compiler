@@ -11,14 +11,15 @@ import { ContinueStatement } from "./LineContent/ContinueStatement";
 import { ForStatement } from "./LineContent/ForStatement";
 import { LocalDeclaration } from "./LineContent/LocalDeclaration";
 
-const keywordToLineContentCreator: Record<string, typeof SyntacticElement.fromTokens> = {
-    "return": ReturnStatement.fromTokens,
-    "break": BreakStatement.fromTokens,
-    "continue": ContinueStatement.fromTokens,
-    "switch": SwitchStatement.fromTokens,
-    "if": IfStatement.fromTokens,
-    "for": ForStatement.fromTokens,
-}
+const lineContentClasses: typeof SyntacticElement[] = [
+    ReturnStatement,
+    BreakStatement,
+    ContinueStatement,
+    SwitchStatement,
+    IfStatement,
+    ForStatement,
+    LocalDeclaration,
+]
 
 export class Line extends SyntacticElement {
     body: Expression | LineContent;
@@ -30,27 +31,10 @@ export class Line extends SyntacticElement {
             obj.tokenSource = tokens;
         });
 
-        let lineContentCreator = keywordToLineContentCreator[tokens[i].value];
+        let element = SyntacticElement.fromPossibleElements(tokens, startIndex, lineContentClasses) ?? Expression.fromTokens(tokens, i);
 
-        if(lineContentCreator) {
-            let instance = lineContentCreator(tokens, i);
-
-            self.body = instance;
-            i = instance.endIndex;
-        } else if(
-            tokens[i].type == TokenType.Identifier &&
-            tokens[i + 1].type == TokenType.Identifier
-        ) {
-            let instance = LocalDeclaration.fromTokens(tokens, i);
-
-            self.body = instance;
-            i = instance.endIndex;
-        } else {
-            let expression = Expression.fromTokens(tokens, i) as Expression;
-
-            self.body = expression;
-            i = expression.endIndex;
-        }
+        i = element.endIndex;
+        self.body = element;
 
         while(tokens[i].value == ";") {
             yourtakingtoolong();

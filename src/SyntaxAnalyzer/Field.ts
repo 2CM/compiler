@@ -5,43 +5,19 @@ import { Identifier } from "./TokenContainers/Identifier";
 import { Keyword } from "./TokenContainers/Keyword";
 import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
+import { Variable } from "./Variable";
 
-export class Field extends SyntacticElement {
+export class Field extends Variable {
     attributes: Keyword[] = [];
-    name: Identifier;
-    type: Identifier;
-    defaultValue: Zingle;
 
-    static fromTokens(tokens: Token[], startIndex: number): Field {
-        let self = create(new Field(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
-        let i = startIndex;
+    static match(tokens: Token[], i: number) {
+        return super.match(tokens, i, true);
+    }
 
-        while(i < tokens.length) {
-            yourtakingtoolong();
+    static fromTokens(tokens: Token[], startIndex: number) {
+        let [self, i] = super.initializeVariable(tokens, startIndex, this, true);
 
-            if(tokens[i].type == TokenType.Keyword) {
-                self.attributes.push(Keyword.fromTokens(tokens, i++));
-            } else if(tokens[i].type == TokenType.Identifier) {
-                break;
-            }
-        }
-        
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.type = Identifier.fromTokens(tokens, i++);
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
-
-        if(tokens[i].value == "=") {
-            let zingle = Expression.fromTokens(tokens, ++i);
-
-            self.defaultValue = zingle;
-            i = zingle.endIndex;
-        }
-        
-        if(tokens[i].checkValueOrThrow(";")) {
-            i++;
-        }
+        tokens[i++].checkValueOrThrow(";")
 
         self.endIndex = i;
 

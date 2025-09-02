@@ -7,9 +7,7 @@ import { hexToRGB } from "./Utils/Utils";
 //     Int32 fieldbuh = 6 + 2;
 
 //     Int32 Bingle(Int32 buh, Int32 ouh) {
-//         if(5 + 2) {
-
-//         }
+//         float buh = 4;
 //     }
 // }
 // `);
@@ -18,16 +16,22 @@ public static class Bello extends bongle, zongle {
     Int32 fieldbuh = 6 + 2;
 
     Int32 Bingle(Int32 buh, Int32 ouh) {
-        for(Int32 b = 5; b < 2; b += 1) {
-        
+        switch(zong) {
+            case 1:
+                if(you == true) {
+                    continue;
+                }
+                break;
+            default:
+                for(int i = 2; i < 2; i += 2) {
+                    print.bingle[1];
+                }
         }
 
         return true;
     }
 }
 `);
-
-console.log(tokenized)
 
 var tree = SyntaxTree.fromTokens(tokenized);
 

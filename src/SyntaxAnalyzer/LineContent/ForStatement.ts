@@ -13,32 +13,25 @@ export class ForStatement extends LineContent {
     increment: Zingle;
     body: Body;
 
+    static match(tokens: Token[], i: number) {
+        return tokens[i].value == "for";
+    }
+
     static fromTokens(tokens: Token[], startIndex: number) {
-        let i = startIndex;
-        let self = create(new ForStatement(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
+        let [self, i] = super.initialize(tokens, startIndex, this);
         
         tokens[i++].checkValueOrThrow("for");
         tokens[i++].checkValueOrThrow("(");
-
         
         self.initialization = Line.fromTokens(tokens, i);
         i = self.initialization.endIndex;
         
-        console.log(tokens.slice(startIndex, i));
-        
         self.condition = Line.fromTokens(tokens, i);
         i = self.condition.endIndex;
 
-        console.log(tokens.slice(startIndex, i));
-        
         self.increment = Expression.fromTokens(tokens, i);
         i = self.increment.endIndex;
         
-        console.log(tokens.slice(startIndex, i));
-
         tokens[i++].checkValueOrThrow(")");
         tokens[i++].checkValueOrThrow("{");
         

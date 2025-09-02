@@ -7,14 +7,14 @@ import { LineContent } from "./LineContent";
 export class ReturnStatement extends LineContent {
     value: Zingle;
 
+    static match(tokens: Token[], i: number) {
+        return tokens[i].value == "return";
+    }
+
     static fromTokens(tokens: Token[], startIndex: number) {
-        let i = startIndex;
-        let self = create(new ReturnStatement(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
+        let [self, i] = super.initialize(tokens, startIndex, this);
         
-        if(tokens[i].checkValueOrThrow("return")) i++;
+        tokens[i++].checkValueOrThrow("return");
 
         if(tokens[i].value != ";") {
             let zingle = Expression.fromTokens(tokens, i);

@@ -52,7 +52,6 @@ export enum Operation {
 }
 
 export namespace Operation {
-    export const buh = 5;
     //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence
     export const operationLevels: Operation[][] = [
         [

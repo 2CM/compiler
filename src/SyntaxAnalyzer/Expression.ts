@@ -15,7 +15,7 @@ export class Expression extends SyntacticElement {
     operation: Operator;
 
     static fromComponents(components: (Zingle | Operator)[]): Zingle {
-        // console.log(components)
+        // console.log({components})
 
         for(let i = 0; i < Operation.operationLevels.length; i++) {
             let operationLevel = Operation.operationLevels[i];
@@ -38,7 +38,6 @@ export class Expression extends SyntacticElement {
                     tokensToSplice = 1;
                 } else if(isZingle(components[j + 1])) { //zingle(zingle)
                     right = components[j + 1] as Zingle;
-
 
                     let operation: Operation = Operation.Call;
 
@@ -107,7 +106,7 @@ export class Expression extends SyntacticElement {
         let i = startIndex;
 
         while(i < tokens.length) {
-            yourtakingtoolong()
+            yourtakingtoolong();
 
             switch(tokens[i].type) { 
                 case TokenType.Identifier:

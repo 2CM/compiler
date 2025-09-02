@@ -12,38 +12,32 @@ export class Class extends SyntacticElement {
     extends: Identifier[] = [];
     body: (Method | Field)[] = [];
 
-    static fromTokens(tokens: Token[], startIndex: number): Class {
-        let self = create(new Class(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
-        let i = startIndex;
+    static match(tokens: Token[], i: number) {
+        i = Keyword.advancePastAttributes(tokens, i);
+        
+        return tokens[i].value == "class";
+    }
+
+    static fromTokens(tokens: Token[], startIndex: number) {
+        let [self, i] = super.initialize(tokens, startIndex, this);
 
         //attributes
-        while(i < tokens.length) {
-            yourtakingtoolong();
+        i = Keyword.advancePastAttributes(tokens, i, self.attributes)
 
-            if(tokens[i].value == "class") {
-                i++;
-
-                break;
-            } else if(tokens[i].checkTypeOrThrow(TokenType.Keyword)) {
-                self.attributes.push(Keyword.fromTokens(tokens, i++));
-            }
-        }
-
+        tokens[i++].checkValueOrThrow("class");
+        
         //class name
         if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
-
+        
         //inheritance
         if(tokens[i].value == "extends") {
             i++;
-
+            
             while(i < tokens.length) {
                 if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) {
                     self.extends.push(Identifier.fromTokens(tokens, i++));
                 }
-
+                
                 if(tokens[i].value == ",") {
                     i++;
                 } else {
@@ -51,39 +45,26 @@ export class Class extends SyntacticElement {
                 }
             }
         }
+        
+        tokens[i++].checkValueOrThrow("{");
 
-        if(tokens[i].checkValueOrThrow("{")) i++;
-
-        //method or field
-        let thingStart = i;
-
+        //body
         while(i < tokens.length) {
             yourtakingtoolong();
 
             if(tokens[i].value == "}") {
-                if(thingStart != i) throw new Error("eijeij")
-
                 self.endIndex = i + 1;
 
                 break;
             }
 
-            //kinda weird solution
-            //go until you find something that isnt a keyword or token
-            //if its a (, then you have a method
-            //if not, you have a field
-            //the error handling is handled in the method and field fromTokens functions themselves
-            if([TokenType.Keyword, TokenType.Identifier].includes(tokens[i].type)) {
-                i++;
+            let element = SyntacticElement.fromPossibleElements(tokens, i, [Field, Method]);
 
-                continue;
+            if(element) {
+                self.body.push(element);
+                i = element.endIndex;
             } else {
-                let thing = tokens[i].value == "(" ? Method.fromTokens(tokens, thingStart) : Field.fromTokens(tokens, thingStart)
-
-                self.body.push(thing);
-
-                i = thing.endIndex;
-                thingStart = i;
+                throw new Error("bad");
             }
         }
 

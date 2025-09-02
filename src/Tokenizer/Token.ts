@@ -1,4 +1,5 @@
 import { Operation } from "../SyntaxAnalyzer/Operation";
+import { Keyword } from "../SyntaxAnalyzer/TokenContainers/Keyword";
 import { cleanStringForRegex, color, enumValue, ignoreInLogging, syntaxColors, yourtakingtoolong } from "../Utils/Utils";
 
 export enum TokenType {
@@ -26,6 +27,8 @@ export class Token {
     constructor(type: TokenType, value: string, startIndex: number, endIndex: number) {
         this.type = type;
         this.value = value;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
     }
 
     checkTypeOrThrow(type: TokenType) {
@@ -34,30 +37,34 @@ export class Token {
         throw new Error(`expected ${TokenType[type]}`);
     }
 
-    checkValueOrThrow(value: string) {
-        if(this.value == value) return true;
+    checkValueOrThrow(...values: string[]) {
+        for(let value of values) {
+            if(this.value == value) return true;
+        }
 
-        throw new Error(`expected ${value}`);
+        throw new Error(`expected ${values.join(",")}`);
     }
 
     inlineToString() {
-        return `(${color(TokenType[this.type], syntaxColors.type)}, ${color(this.value, syntaxColors.value)})`
+        return `(${color(TokenType[this.type], syntaxColors.type)}, ${color(this.value, syntaxColors.value)})`;
     }
 
     static stringToTokens(str: string): Token[] {
-        let tokens: Token[] = []
+        let tokens: Token[] = [];
         let index = 0;
+        let operatorMatch = Object.keys(Operation.operatorStrToOperation)
+            .sort((a,b) => a.length > b.length ? -1 : 1)
+            .map(cleanStringForRegex)
+            .join("|");
+
+        let keywordMatch = Keyword.keywords.join("|");
+
         let regex = new RegExp(
             [
-                /(?<keyword>class|return|public|private|protected|override|virtual|abstract|static|extends|if|else|switch|case|default|break|continue|for|while|until)/,
+                `(?<keyword>${keywordMatch})`,
                 /(?<literal>(-?\d+(\.\d+)?|("[^"]+")|true|false))/,
                 /(?<identifier>[A-Z|a-z]([A-Z|a-z|0-9]+)?)/,
-                `(?<operator>(${
-                    Object.keys(Operation.operatorStrToOperation)
-                        .sort((a,b) => a.length > b.length ? -1 : 1)
-                        .map(cleanStringForRegex)
-                        .join("|")
-                }))`,
+                `(?<operator>${operatorMatch})`,
                 /(?<separator>[()[\]{};:])/,
                 /(?<whitespace>[\n\s]+)/,
             ].map(regex => regex instanceof RegExp ? regex.source : regex).join("|"),

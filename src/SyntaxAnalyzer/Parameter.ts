@@ -4,33 +4,17 @@ import { Expression } from "./Expression";
 import { Identifier } from "./TokenContainers/Identifier";
 import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
+import { Variable } from "./Variable";
 
-export class Parameter extends SyntacticElement {
-    type: Identifier;
-    name: Identifier;
-    defaultValue: Zingle;
+export class Parameter extends Variable {
+    static match(tokens: Token[], i: number) {
+        return super.match(tokens, i, false);
+    }
 
     static fromTokens(tokens: Token[], startIndex: number) {
-        let i = startIndex;
-        let self = create(new Parameter(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
+        let [self, i] = super.initializeVariable(tokens, startIndex, this, false);
 
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.type = Identifier.fromTokens(tokens, i++);
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
-        
-        //check this
-        if(tokens[i].value == "=") {
-            let zingle = Expression.fromTokens(tokens, ++i);
-
-            self.defaultValue = zingle;
-            i = zingle.endIndex;
-        }
-
-        if(![",", ")"].includes(tokens[i].value)) {
-            throw new Error("what");
-        }
+        tokens[i].checkValueOrThrow(",", ")");
 
         self.endIndex = i;
 

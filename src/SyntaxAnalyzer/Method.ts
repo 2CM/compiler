@@ -5,6 +5,7 @@ import { Identifier } from "./TokenContainers/Identifier";
 import { Keyword } from "./TokenContainers/Keyword";
 import { Parameter } from "./Parameter";
 import { SyntacticElement } from "./SyntacticElement";
+import { Variable } from "./Variable";
 
 export class Method extends SyntacticElement {
     attributes: Keyword[] = [];
@@ -13,27 +14,37 @@ export class Method extends SyntacticElement {
     parameters: Parameter[] = [];
     body: Body;
 
-    static fromTokens(tokens: Token[], startIndex: number): Method {
-        let i = startIndex;
-        let self = create(new Method(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
-
+    static match(tokens: Token[], i: number) {
         while(i < tokens.length) {
             yourtakingtoolong();
 
             if(tokens[i].type == TokenType.Keyword) {
-                self.attributes.push(Keyword.fromTokens(tokens, i++));
-            } else if(tokens[i].type == TokenType.Identifier) {
+                i++;
+            } else {
                 break;
             }
         }
+
+        return (
+            tokens[i++].type == TokenType.Identifier &&
+            tokens[i++].type == TokenType.Identifier && 
+            tokens[i++].value == "("
+        )
+    }
+
+    static fromTokens(tokens: Token[], startIndex: number): Method {
+        let [self, i] = super.initialize(tokens, startIndex, this);
+
+        //attributes
+        i = Keyword.advancePastAttributes(tokens, startIndex, self.attributes)
         
+        //return type and name
         if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.returnType = Identifier.fromTokens(tokens, i++);
         if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
-        if(tokens[i].checkValueOrThrow("(")) i++;
-
+        
+        //parameters
+        tokens[i++].checkValueOrThrow("(");
+        
         while(i < tokens.length) {
             yourtakingtoolong();
 
@@ -44,7 +55,6 @@ export class Method extends SyntacticElement {
             let parameter = Parameter.fromTokens(tokens, i);
 
             self.parameters.push(parameter);
-
             i = parameter.endIndex;
 
             if(tokens[i].value == ",") {
@@ -52,22 +62,15 @@ export class Method extends SyntacticElement {
             }
         }
 
-        while(i < tokens.length) {
-            yourtakingtoolong();
+        tokens[i++].checkValueOrThrow(")");
 
-            if(tokens[i].value == "{") {
-                i++;
+        //body
+        tokens[i++].checkValueOrThrow("{");
 
-                let body = Body.fromTokens(tokens, i);
-                
-                self.body = body;
-                self.endIndex = body.endIndex + 1;
-
-                break;
-            }
-
-            i++;
-        }
+        let body = Body.fromTokens(tokens, i);
+        
+        self.body = body;
+        self.endIndex = body.endIndex + 1;
 
         return self;
     }

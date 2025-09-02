@@ -59,10 +59,34 @@ export class SyntacticElement {
         return str;
     }
 
-    static fromTokens(tokens: Token[], startIndex: number): SyntacticElement | Zingle {
-        return create(new SyntacticElement(), obj => {
+    static match(tokens: Token[], i: number): boolean {
+        return false;
+    }
+
+    static initialize<T extends SyntacticElement>(tokens: Token[], startIndex: number, constructor: new () => T): [T, number] {
+        return [
+            create(new constructor(), obj => {
+                obj.startIndex = startIndex;
+                obj.tokenSource = tokens;
+            }),
+            startIndex
+        ]
+    }
+
+    static fromTokens(tokens: Token[], startIndex: number): SyntacticElement {
+        return create(this.caller.prototype, obj => {
             obj.tokenSource = tokens;
             obj.startIndex = startIndex;
         })
+    }
+
+    static fromPossibleElements<T extends (typeof SyntacticElement)[]>(tokens: Token[], startIndex: number, possibleElements: T): InstanceType<T[number]> | null {
+        for(let possibleElement of possibleElements) {
+            if(possibleElement.match(tokens, startIndex)) {
+                return possibleElement.fromTokens(tokens, startIndex) as InstanceType<T[number]>;
+            }
+        }
+
+        return null;
     }
 }

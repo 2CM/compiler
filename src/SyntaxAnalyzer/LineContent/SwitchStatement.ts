@@ -18,12 +18,12 @@ export class SwitchStatement extends LineContent {
     switchExpression: Zingle;
     body: SwitchSection[] = [];
 
+    static match(tokens: Token[], i: number) {
+        return tokens[i].value == "switch";
+    }
+
     static fromTokens(tokens: Token[], startIndex: number) {
-        let i = startIndex;
-        let self = create(new SwitchStatement(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
+        let [self, i] = super.initialize(tokens, startIndex, this);
 
         tokens[i++].checkValueOrThrow("switch");
         tokens[i++].checkValueOrThrow("(");
@@ -39,8 +39,6 @@ export class SwitchStatement extends LineContent {
 
         while(i < tokens.length) {
             yourtakingtoolong();
-
-            console.log("b: ", tokens[i])
 
             if(tokens[i].value == "}") {
                 break;

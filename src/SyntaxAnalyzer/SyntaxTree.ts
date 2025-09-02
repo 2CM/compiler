@@ -6,28 +6,18 @@ import { SyntacticElement } from "./SyntacticElement";
 export class SyntaxTree extends SyntacticElement {
     body: Class[] = [];
 
-    static fromTokens(tokens: Token[], startIndex: number = 0): SyntaxTree {
-        let self = create(new SyntaxTree(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
-        let i = startIndex;
-
-        let thingStart = startIndex;
+    static fromTokens(tokens: Token[], startIndex: number = 0) {
+        let [self, i] = super.initialize(tokens, startIndex, this);
 
         while(i < tokens.length) {
             yourtakingtoolong();
 
-            if(tokens[i].value == "class") {
-                let class_ = Class.fromTokens(tokens, thingStart);
+            let element = SyntacticElement.fromPossibleElements(tokens, startIndex, [Class]);
 
-                self.body.push(class_)
+            if(!element) throw new Error();
 
-                i = class_.endIndex;
-                thingStart = class_.endIndex;
-            } else if(tokens[i].checkTypeOrThrow(TokenType.Keyword)) {
-                i++;
-            }
+            self.body.push(element);
+            i = element.endIndex;
         }
 
         self.endIndex = i;
