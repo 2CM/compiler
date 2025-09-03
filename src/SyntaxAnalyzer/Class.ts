@@ -5,11 +5,14 @@ import { Identifier } from "./TokenContainers/Identifier";
 import { Keyword } from "./TokenContainers/Keyword";
 import { Method } from "./Method";
 import { SyntacticElement } from "./SyntacticElement";
+import { Generic } from "./Generic";
+import { Type } from "./Type";
 
 export class Class extends SyntacticElement {
     attributes: Keyword[] = [];
     name: Identifier;
-    extends: Identifier[] = [];
+    generic: Generic;
+    extends: Type[] = [];
     body: (Method | Field)[] = [];
 
     static match(tokens: Token[], i: number) {
@@ -29,13 +32,26 @@ export class Class extends SyntacticElement {
         //class name
         if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
         
+        //generic
+        if(Generic.match(tokens, i)) {
+            let generic = Generic.fromTokens(tokens, i);
+
+            self.generic = generic;
+            i = generic.endIndex;
+        }
+
         //inheritance
         if(tokens[i].value == "extends") {
             i++;
             
             while(i < tokens.length) {
-                if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) {
-                    self.extends.push(Identifier.fromTokens(tokens, i++));
+                if(Type.match(tokens, i)) {
+                    let type = Type.fromTokens(tokens, i);
+
+                    self.extends.push(type);
+                    i = type.endIndex;
+                } else {
+                    throw new Error("expected type")
                 }
                 
                 if(tokens[i].value == ",") {

@@ -6,30 +6,40 @@ import { Keyword } from "./TokenContainers/Keyword";
 import { Parameter } from "./Parameter";
 import { SyntacticElement } from "./SyntacticElement";
 import { Variable } from "./Variable";
+import { Type } from "./Type";
+import { Generic } from "./Generic";
+import { Member } from "./Member";
 
 export class Method extends SyntacticElement {
     attributes: Keyword[] = [];
-    returnType: Identifier;
+    returnType: Type;
     name: Identifier;
+    generic: Generic;
     parameters: Parameter[] = [];
     body: Body;
 
     static match(tokens: Token[], i: number) {
-        while(i < tokens.length) {
-            yourtakingtoolong();
+        i = Keyword.advancePastAttributes(tokens, i);
 
-            if(tokens[i].type == TokenType.Keyword) {
-                i++;
-            } else {
-                break;
-            }
+        console.log(tokens[i]);
+        if(Type.match(tokens, i)) {
+            let type = Type.fromTokens(tokens, i);
+
+            i = type.endIndex;
+        } else {
+            return false;
         }
 
-        return (
-            tokens[i++].type == TokenType.Identifier &&
-            tokens[i++].type == TokenType.Identifier && 
-            tokens[i++].value == "("
-        )
+
+        if(tokens[i++].type != TokenType.Identifier) return false;
+
+        if(Generic.match(tokens, i)) {
+            let generic = Generic.fromTokens(tokens, i);
+
+            i = generic.endIndex
+        }
+
+        return tokens[i].value == "(";
     }
 
     static fromTokens(tokens: Token[], startIndex: number): Method {
@@ -39,9 +49,22 @@ export class Method extends SyntacticElement {
         i = Keyword.advancePastAttributes(tokens, startIndex, self.attributes)
         
         //return type and name
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.returnType = Identifier.fromTokens(tokens, i++);
+        if(Type.match(tokens, i)) {
+            self.returnType = Type.fromTokens(tokens, i);
+
+            i = self.returnType.endIndex;
+        } else {
+            throw new Error("expected type")
+        }
+        
         if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
         
+        if(Generic.match(tokens, i)) {
+            self.generic = Generic.fromTokens(tokens, i);
+
+            i = self.generic.endIndex;
+        }
+
         //parameters
         tokens[i++].checkValueOrThrow("(");
         

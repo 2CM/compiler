@@ -113,6 +113,10 @@ export class SyntacticElement {
         return false;
     }
 
+    static matchOrThrow(tokens: Token[], i: number) {
+        if(!this.match(tokens, i)) throw new Error(`expected ${this.constructor.name}`);
+    }
+
     static initialize<T extends SyntacticElement>(tokens: Token[], startIndex: number, constructor: new () => T): [T, number] {
         return [
             create(new constructor(), obj => {

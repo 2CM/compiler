@@ -64,7 +64,7 @@ export class Token {
                 /(?<literal>(-?\d+(\.\d+)?|("[^"]+")|true|false))/,
                 /(?<identifier>[A-Z|a-z]([A-Z|a-z|0-9]+)?)/,
                 `(?<operator>${operatorMatch})`,
-                /(?<separator>[()[\]{};:])/,
+                /(?<separator>[()[\]{};:\<\>])/,
                 /(?<whitespace>[\n\s]+)/,
             ].map(regex => regex instanceof RegExp ? regex.source : regex).join("|"),
             "y"
