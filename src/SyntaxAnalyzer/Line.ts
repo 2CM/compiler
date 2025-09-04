@@ -10,6 +10,7 @@ import { SyntacticElement } from "./SyntacticElement";
 import { ContinueStatement } from "./LineContent/ContinueStatement";
 import { ForStatement } from "./LineContent/ForStatement";
 import { LocalDeclaration } from "./LineContent/LocalDeclaration";
+import { ElementBuilder } from "./ElementBuilder";
 
 const lineContentClasses: typeof SyntacticElement[] = [
     ReturnStatement,
@@ -24,26 +25,15 @@ const lineContentClasses: typeof SyntacticElement[] = [
 export class Line extends SyntacticElement {
     body: Expression | LineContent;
 
-    static fromTokens(tokens: Token[], startIndex: number): Line {
-        let i = startIndex;
-        let self = create(new Line(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
+    static fromTokens(tokens: Token[], startIndex: number) {
+        let [self, builder] = ElementBuilder.initialize(tokens, startIndex, this);
 
-        let element = SyntacticElement.fromPossibleElements(tokens, startIndex, lineContentClasses) ?? Expression.fromTokens(tokens, i);
+        self.body = builder.readElementFromPossibilities(lineContentClasses) ?? builder.readElement(Expression);
 
-        i = element.endIndex;
-        self.body = element;
-
-        while(tokens[i].value == ";") {
+        while(builder.advancePastValue(";")) {
             yourtakingtoolong();
-
-            i++;
         }
 
-        self.endIndex = i;
-
-        return self;
+        return builder.finish();
     }
 }

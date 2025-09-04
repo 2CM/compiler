@@ -1,13 +1,14 @@
 import { Token } from "../Tokenizer/Token";
 import { create, getAnsiColorCode, ignoreInLogging, indentationString, syntaxColors } from "../Utils/Utils";
+import { ElementBuilder } from "./ElementBuilder";
 import { Zingle } from "./Zingle";
 
 export class SyntacticElement {
     @ignoreInLogging()
-    startIndex: number;
+    startIndex: number = 0;
 
     @ignoreInLogging()
-    endIndex: number;
+    endIndex: number = 0;
 
     @ignoreInLogging()
     tokenSource: Token[];
@@ -16,7 +17,7 @@ export class SyntacticElement {
         let tokens = this.tokenSource;
         let stringSource = tokens[0].stringSource;
         let start = tokens[this.startIndex].stringStartIndex;
-        let end = tokens[this.endIndex - 1].stringEndIndex;
+        let end = tokens[Math.max(this.endIndex - 1, 0)].stringEndIndex;
 
         let newLine = "\n" + linePrefix + indentationString + getAnsiColorCode(syntaxColors.string)
 
@@ -127,20 +128,30 @@ export class SyntacticElement {
         ]
     }
 
-    static fromTokens(tokens: Token[], startIndex: number): SyntacticElement {
-        return create(this.caller.prototype, obj => {
-            obj.tokenSource = tokens;
-            obj.startIndex = startIndex;
-        })
+    readSingle(builder: ElementBuilder) {
+        (this as any).value = builder.current.value;
+
+        builder.advance();
+
+        builder.finish();
     }
 
-    static fromPossibleElements<T extends (typeof SyntacticElement)[]>(tokens: Token[], startIndex: number, possibleElements: T): InstanceType<T[number]> | null {
-        for(let possibleElement of possibleElements) {
-            if(possibleElement.match(tokens, startIndex)) {
-                return possibleElement.fromTokens(tokens, startIndex) as InstanceType<T[number]>;
-            }
-        }
+    read(builder: ElementBuilder): void {}
 
-        return null;
-    }
+    // static fromTokens(tokens: Token[], startIndex: number): SyntacticElement {
+    //     return create(this.caller.prototype, obj => {
+    //         obj.tokenSource = tokens;
+    //         obj.startIndex = startIndex;
+    //     })
+    // }
+
+    // static fromPossibleElements<T extends (typeof SyntacticElement)[]>(tokens: Token[], startIndex: number, possibleElements: T): InstanceType<T[number]> | null {
+    //     for(let possibleElement of possibleElements) {
+    //         if(possibleElement.match(tokens, startIndex)) {
+    //             return possibleElement.fromTokens(tokens, startIndex) as InstanceType<T[number]>;
+    //         }
+    //     }
+
+    //     return null;
+    // }
 }

@@ -1,16 +1,13 @@
-import { Field } from "./SyntaxAnalyzer/Field";
-import { Generic } from "./SyntaxAnalyzer/Generic";
+import { ElementBuilder } from "./SyntaxAnalyzer/ElementBuilder";
+import { Expression } from "./SyntaxAnalyzer/Expression";
 import { SyntaxTree } from "./SyntaxAnalyzer/SyntaxTree";
+import { Zingle } from "./SyntaxAnalyzer/Zingle";
 import { Token } from "./Tokenizer/Token";
-import { hexToRGB } from "./Utils/Utils";
+import { create } from "./Utils/Utils";
 
 var tokenized = Token.stringToTokens(`
-public static class Bello<T> extends bongle<T>, zongle<T> {
-    Dictionary<string, Int32> fieldbuh = 6 + 2;
-
-    Dictionary<string, Float32> Bingle<T>(Int32 buh, Int32 ouh) {
-        float buh = 4;
-    }
+public static class Bello<T, T> {
+    Int32<t, t> buh;
 }
 `);
 // var tokenized = Token.stringToTokens(`
@@ -25,9 +22,6 @@ public static class Bello<T> extends bongle<T>, zongle<T> {
 //                 }
 //                 break;
 //             default:
-//                 for(int i = 2; i < 2; i += 2) {
-//                     print.bingle[1];
-//                 }
 //         }
 
 //         return true;
@@ -35,9 +29,17 @@ public static class Bello<T> extends bongle<T>, zongle<T> {
 // }
 // `);
 
-var tree = SyntaxTree.fromTokens(tokenized);
+let tree = create(new SyntaxTree(), obj => {
+    obj.tokenSource = tokenized;
+});
+let builder = new ElementBuilder(tree);
+
+tree.read(builder);
+
+// console.log(JSON.stringify(tree, (key: string, value: any) => key == "tokenSource" ? "buh" : value, "    "))
 
 console.log(tree);
+
 
 
 // console.log(Field.fromTokens(Token.stringToTokens(`Int32<Thing> buh;`), 0));

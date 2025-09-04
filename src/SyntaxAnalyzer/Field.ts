@@ -1,26 +1,20 @@
-import { Token, TokenType } from "../Tokenizer/Token";
-import { create, yourtakingtoolong } from "../Utils/Utils";
 import { Expression } from "./Expression";
-import { Identifier } from "./TokenContainers/Identifier";
-import { Keyword } from "./TokenContainers/Keyword";
-import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
-import { Variable } from "./Variable";
+import { ElementBuilder } from "./ElementBuilder";
+import { SyntacticElement } from "./SyntacticElement";
 
-export class Field extends Variable {
-    attributes: Keyword[] = [];
+export class Field extends SyntacticElement {
+    defaultValue?: Zingle;
 
-    static match(tokens: Token[], i: number) {
-        return super.match(tokens, i, true);
-    }
+    read(builder: ElementBuilder) {
+        console.log("gijijefij")
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initializeVariable(tokens, startIndex, this, true);
+        if(builder.advancePastValue("=")) {
+            this.defaultValue = builder.readElement(Expression);
+        }
 
-        tokens[i++].checkValueOrThrow(";")
+        builder.advancePastExpectedValue(";");
 
-        self.endIndex = i;
-
-        return self;
+        builder.finish();
     }
 }

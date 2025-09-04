@@ -1,36 +1,25 @@
 import { Token } from "../Tokenizer/Token";
 import { create, yourtakingtoolong } from "../Utils/Utils";
+import { ElementBuilder } from "./ElementBuilder";
 import { Line } from "./Line";
 import { SyntacticElement } from "./SyntacticElement";
 
 export class Body extends SyntacticElement {
     body: Line[] = [];
 
-    static fromTokens(tokens: Token[], startIndex: number, stopOnSwitchSection: boolean = false): Body {
-        let i = startIndex;
-        let self = create(new Body(), obj => {
-            obj.startIndex = startIndex;
-            obj.tokenSource = tokens;
-        });
-
-        if(tokens[i].value == "{") i++;
+    read(builder: ElementBuilder) {
+        builder.advancePastValue("{");
         
-        while(i < tokens.length) {
+        while(builder.going) {
             yourtakingtoolong();
 
-            if(tokens[i].value == "}" || (stopOnSwitchSection && ["case", "default"].includes(tokens[i].value))) {
-                self.endIndex = i;
-
+            if(builder.checkValue("}", "case", "default")) {
                 break;
             }
 
-            let line = Line.fromTokens(tokens, i);
-
-            self.body.push(line);
-
-            i = line.endIndex;
+            this.body.push(builder.readElement(Line));
         }
 
-        return self;
+        return builder.finish();
     }
 }

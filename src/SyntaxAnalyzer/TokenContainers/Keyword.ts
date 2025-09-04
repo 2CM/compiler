@@ -8,7 +8,7 @@ import { TokenReferenceElement } from "../TokenReferenceElement";
 export class Keyword extends TokenReferenceElement<string> {
     static create = () => new this();
 
-    static attributeKeywords = new Set([
+    static modifierKeywords = new Set([
         "public",
         "private",
         "protected",
@@ -42,13 +42,13 @@ export class Keyword extends TokenReferenceElement<string> {
         "return",
     ])
 
-    static keywords = [...this.attributeKeywords, ...this.syntaxKeywords];
+    static keywords = [...this.modifierKeywords, ...this.syntaxKeywords];
 
     static advancePastAttributes(tokens: Token[], i: number, array?: Keyword[]): number {
         while(i < tokens.length) {
             yourtakingtoolong();
     
-            if(!this.attributeKeywords.has(tokens[i].value)) break;
+            if(!this.modifierKeywords.has(tokens[i].value)) break;
 
             array?.push(Keyword.fromTokens(tokens, i));
 

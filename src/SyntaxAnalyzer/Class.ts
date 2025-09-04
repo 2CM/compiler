@@ -7,83 +7,63 @@ import { Method } from "./Method";
 import { SyntacticElement } from "./SyntacticElement";
 import { Generic } from "./Generic";
 import { Type } from "./Type";
+import { ElementBuilder } from "./ElementBuilder";
+import { Member } from "./Member";
+import { ModifierList } from "./ModifierList";
 
 export class Class extends SyntacticElement {
-    attributes: Keyword[] = [];
+    modifiers: ModifierList;
     name: Identifier;
     generic: Generic;
     extends: Type[] = [];
-    body: (Method | Field)[] = [];
+    body: Member[] = [];
 
-    static match(tokens: Token[], i: number) {
-        i = Keyword.advancePastAttributes(tokens, i);
-        
-        return tokens[i].value == "class";
-    }
+    read(builder: ElementBuilder) {
+        //modifiers
+        if(builder.matchElement(ModifierList)) {
+            this.modifiers = builder.readElement(ModifierList);
+        }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
+        builder.advancePastExpectedValue("class");
 
-        //attributes
-        i = Keyword.advancePastAttributes(tokens, i, self.attributes)
-
-        tokens[i++].checkValueOrThrow("class");
         
         //class name
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.name = Identifier.fromTokens(tokens, i++);
-        
-        //generic
-        if(Generic.match(tokens, i)) {
-            let generic = Generic.fromTokens(tokens, i);
+        this.name = builder.readElement(Identifier);
 
-            self.generic = generic;
-            i = generic.endIndex;
+        //generics
+        if(builder.matchElement(Generic)) {
+            this.generic = builder.readElement(Generic);
         }
 
         //inheritance
-        if(tokens[i].value == "extends") {
-            i++;
-            
-            while(i < tokens.length) {
-                if(Type.match(tokens, i)) {
-                    let type = Type.fromTokens(tokens, i);
-
-                    self.extends.push(type);
-                    i = type.endIndex;
-                } else {
-                    throw new Error("expected type")
-                }
+        if(builder.advancePastValue("extends")) {
+            while(builder.going) {
+                this.extends.push(builder.readElement(Type));
                 
-                if(tokens[i].value == ",") {
-                    i++;
-                } else {
-                    break;
-                }
+                if(!builder.advancePastValue(",")) break;
             }
         }
         
-        tokens[i++].checkValueOrThrow("{");
+        builder.advancePastExpectedValue("{")
 
         //body
-        while(i < tokens.length) {
+        while(builder.going) {
             yourtakingtoolong();
 
-            if(tokens[i].value == "}") {
-                self.endIndex = i + 1;
+            if(builder.advancePastValue("}")) break;
 
-                break;
-            }
+            this.body.push(builder.readElement(Member));
 
-            let element = SyntacticElement.fromPossibleElements(tokens, i, [Field, Method]);
+            // let element = SyntacticElement.fromPossibleElements(tokens, i, [Field, Method]);
 
-            if(element) {
-                self.body.push(element);
-                i = element.endIndex;
-            } else {
-                throw new Error("bad");
-            }
+            // if(element) {
+            //     self.body.push(element);
+            //     i = element.endIndex;
+            // } else {
+            //     throw new Error("bad");
+            // }
         }
 
-        return self;
+        return builder.finish();
     }
 }

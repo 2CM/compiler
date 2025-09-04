@@ -1,4 +1,5 @@
 import { Token, TokenType } from "../Tokenizer/Token";
+import { ElementBuilder } from "./ElementBuilder";
 import { Generic } from "./Generic";
 import { SyntacticElement } from "./SyntacticElement";
 import { Identifier } from "./TokenContainers/Identifier";
@@ -11,19 +12,13 @@ export class Type extends SyntacticElement {
         return tokens[i].type == TokenType.Identifier;
     }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
+    read(builder: ElementBuilder) {
+        this.value = builder.readElement(Identifier);
 
-        if(tokens[i].checkTypeOrThrow(TokenType.Identifier)) self.value = Identifier.fromTokens(tokens, i++);
-
-        if(Generic.match(tokens, i)) {
-            self.generic = Generic.fromTokens(tokens, i);
-
-            i = self.generic.endIndex;
+        if(builder.matchElement(Generic)) {
+            this.generic = builder.readElement(Generic);
         }
 
-        self.endIndex = i;
-
-        return self;
+        builder.finish();
     }
 }

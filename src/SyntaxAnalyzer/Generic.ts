@@ -7,6 +7,7 @@ import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { Variable } from "./Variable";
 import { Type } from "./Type";
+import { ElementBuilder } from "./ElementBuilder";
 
 export class Generic extends SyntacticElement {
     types: Type[] = [];
@@ -15,32 +16,19 @@ export class Generic extends SyntacticElement {
         return tokens[i].value == "<";
     }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
+    read(builder: ElementBuilder) {
+        builder.advancePastExpectedValue("<")
 
-        tokens[i++].checkValueOrThrow("<");
-
-        while(i < tokens.length) {
+        while(builder.going) {
             yourtakingtoolong();
 
-            if(tokens[i].value == ">") break;
+            if(builder.advancePastValue(">")) break;
 
-            if(Type.match(tokens, i)) {
-                let type = Type.fromTokens(tokens, i);
-                
-                self.types.push(type);
-                i = type.endIndex;
-
-                tokens[i].checkValueOrThrow(",", ">");
-                
-                if(tokens[i].value == ",") i++;
-            } else {
-                throw new Error("expected type")
-            }
+            this.types.push(builder.readElement(Type));
+            
+            builder.advancePastValue(",");
         }
 
-        self.endIndex = i + 1;
-
-        return self;
+        return builder.finish();
     }
 }
