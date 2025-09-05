@@ -7,11 +7,11 @@ import { SyntacticElement } from "./SyntacticElement";
 export class SyntaxTree extends SyntacticElement {
     body: Class[] = [];
 
-    read(builder: ElementBuilder) {
+    static read(self: SyntaxTree, builder: ElementBuilder) {
         while(builder.going) {
             yourtakingtoolong();
 
-            this.body.push(builder.readElement(Class));
+            self.body.push(builder.readElement(Class));
         }
 
         return builder.finish();

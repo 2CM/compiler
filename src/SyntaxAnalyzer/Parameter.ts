@@ -5,16 +5,15 @@ import { Identifier } from "./TokenContainers/Identifier";
 import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { Variable } from "./Variable";
+import { ElementBuilder } from "./ElementBuilder";
 
 export class Parameter extends Variable {
     static match(tokens: Token[], i: number) {
         return super.match(tokens, i, false);
     }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initializeVariable(tokens, startIndex, this, false);
-
-        tokens[i].checkValueOrThrow(",", ")");
+    static read(self: Parameter, builder: ElementBuilder) {
+        builder.advancePastExpectedValue(",", ")")
 
         self.endIndex = i;
 

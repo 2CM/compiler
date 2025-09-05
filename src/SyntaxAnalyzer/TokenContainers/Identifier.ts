@@ -1,5 +1,5 @@
-import { TokenReferenceElement } from "../TokenReferenceElement";
+import { TokenContainer } from "../TokenContainer";
 
-export class Identifier extends TokenReferenceElement<string> {
-    static create = () => new this();
+export class Identifier extends TokenContainer<string> {
+    
 }

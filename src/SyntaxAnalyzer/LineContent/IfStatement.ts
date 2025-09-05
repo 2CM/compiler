@@ -1,6 +1,7 @@
 import { Token } from "../../Tokenizer/Token";
 import { create, yourtakingtoolong } from "../../Utils/Utils";
 import { Body } from "../Body";
+import { ElementBuilder } from "../ElementBuilder";
 import { Expression } from "../Expression";
 import { ExpressionList } from "../ExpressionList";
 import { Zingle } from "../Zingle";
@@ -15,10 +16,8 @@ export class IfStatement extends LineContent {
         return tokens[i].value == "if";
     }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
-
-        while(i < tokens.length) {
+    static read(self: IfStatement, builder: ElementBuilder) {
+        while(builder.going) {
             let ifCondition: Zingle | null = null;
             let ifBody: Body | null = null;
             let canSkipCondition: boolean = false; //i feel like a tsa agent
@@ -26,25 +25,19 @@ export class IfStatement extends LineContent {
 
             yourtakingtoolong();
 
-            if(tokens[i].value == "else") {
+            if(builder.advancePastValue("else")) {
                 if(self.ifBodies.length == 0) throw new Error("weird else")
 
                 canSkipCondition = true;
-
-                i++;
             }
 
-            if(tokens[i].value == "if") {
-                i++;
+            if(builder.advancePastValue("if")) {
+                builder.advancePastExpectedValue("(");
+            
+                ifCondition = builder.readElement(Expression);
 
-                if(tokens[i].checkValueOrThrow("(")) {
-                    ifCondition = Expression.fromTokens(tokens, ++i);
-
-                    if(ifCondition instanceof ExpressionList && ifCondition.list.length == 0) {
-                        throw new Error("empty if condition")
-                    }
-
-                    i = ifCondition.endIndex + 1;
+                if(ifCondition instanceof ExpressionList && ifCondition.list.length == 0) {
+                    throw new Error("empty if condition")
                 }
             } else if(canSkipCondition) {
                 skippedCondition = true;
@@ -54,12 +47,11 @@ export class IfStatement extends LineContent {
                 // throw new Error("tried to skip if statement") //getting stopped at tsa
             }
 
-            if(tokens[i].checkValueOrThrow("{")) {
-                i++;
+            builder.advancePastExpectedValue(")");
+            builder.advancePastExpectedValue("{");
 
-                ifBody = Body.fromTokens(tokens, i);
-                i = ifBody.endIndex + 1;
-            }
+            ifBody = builder.readElement(Body);
+            builder.advance();
 
             if(!ifBody) throw new Error("no if body");
 
@@ -74,9 +66,7 @@ export class IfStatement extends LineContent {
             self.ifConditions.push(ifCondition);
             self.ifBodies.push(ifBody);
         }
-
-        self.endIndex = i;
         
-        return self;
+        return builder.finish();
     }
 }

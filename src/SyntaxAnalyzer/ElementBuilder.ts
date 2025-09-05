@@ -47,19 +47,16 @@ export class ElementBuilder {
             obj.startIndex = this.i
         });
         
-        let builder = create(new ElementBuilder(element), obj => {
-            obj.i = this.i
-            obj.tokens = this.tokens
-        });
+        let builder = new ElementBuilder(element);
+        
+        let outElement = (elementType as any as typeof SyntacticElement).read(element, builder);
 
-        element.read(builder);
+        this.i = outElement.endIndex;
 
-        this.i = element.endIndex;
-
-        return element as T;
+        return outElement as T;
     }
 
-    continueReadingAs<T extends SyntacticElement>(elementType: new () => T): void {
+    continueReadingAs<T extends SyntacticElement>(elementType: new () => T): T {
         (this.element as any).__proto__ = elementType.prototype;
         // this.element.__constructor = elementType.constructor;
         // this.element.constructor.call(this.element)
@@ -67,7 +64,7 @@ export class ElementBuilder {
 
         console.log(elementType.name)
 
-        this.element.read.call(this.element, this);
+        return (elementType as any as typeof SyntacticElement).read(this.element, this) as T;
     }
 
     readElementFromPossibilities<T extends (typeof SyntacticElement)[]>(possibleElements: T): InstanceType<T[number]> | null {
@@ -92,20 +89,22 @@ export class ElementBuilder {
         this.i++;
     }
 
-    advancePastValue(value: string) {
-        if(this.current.value == value) {
-            this.i++;
+    advancePastValue(...values: string[]) {
+        for(let value of values) {
+            if(this.current.value == value) {
+                this.i++;
 
-            return true;
+                return true;
+            }
         }
 
         return false;
     }
 
-    advancePastExpectedValue(value: string) {
-        if(this.advancePastValue(value)) return true;
+    advancePastExpectedValue(...values: string[]) {
+        if(this.advancePastValue(...values)) return true;
 
-        throw new Error(`expected ${value}`);
+        throw new Error(`expected ${values.join(", ")}`);
     }
 
     checkType(type: TokenType) {

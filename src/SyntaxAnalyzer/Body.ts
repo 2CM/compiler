@@ -7,7 +7,7 @@ import { SyntacticElement } from "./SyntacticElement";
 export class Body extends SyntacticElement {
     body: Line[] = [];
 
-    read(builder: ElementBuilder) {
+    static read(self: Body, builder: ElementBuilder) {
         builder.advancePastValue("{");
         
         while(builder.going) {
@@ -17,7 +17,7 @@ export class Body extends SyntacticElement {
                 break;
             }
 
-            this.body.push(builder.readElement(Line));
+            self.body.push(builder.readElement(Line));
         }
 
         return builder.finish();

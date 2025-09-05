@@ -11,7 +11,7 @@ export class ModifierList extends SyntacticElement {
         return Keyword.modifierKeywords.has(tokens[startIndex].value);
     }
 
-    read(builder: ElementBuilder) {
+    static read(self: ModifierList, builder: ElementBuilder) {
         console.log(builder.current);
 
         while(builder.going) {
@@ -21,9 +21,9 @@ export class ModifierList extends SyntacticElement {
 
             if(!builder.checkValue(...Keyword.modifierKeywords)) break;
 
-            this.body.push(builder.readElement(Keyword));
+            self.body.push(builder.readElement(Keyword));
         }
 
-        builder.finish();
+        return builder.finish();
     }
 }

@@ -16,7 +16,7 @@ export class Generic extends SyntacticElement {
         return tokens[i].value == "<";
     }
 
-    read(builder: ElementBuilder) {
+    static read(self: Generic, builder: ElementBuilder) {
         builder.advancePastExpectedValue("<")
 
         while(builder.going) {
@@ -24,7 +24,7 @@ export class Generic extends SyntacticElement {
 
             if(builder.advancePastValue(">")) break;
 
-            this.types.push(builder.readElement(Type));
+            self.types.push(builder.readElement(Type));
             
             builder.advancePastValue(",");
         }

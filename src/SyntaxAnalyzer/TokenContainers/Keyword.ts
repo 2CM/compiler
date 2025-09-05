@@ -1,13 +1,11 @@
 import { Token } from "../../Tokenizer/Token";
 import { color, syntaxColors, yourtakingtoolong } from "../../Utils/Utils";
-import { TokenReferenceElement } from "../TokenReferenceElement";
+import { TokenContainer } from "../TokenContainer";
 
 
 //class|return|public|private|protected|override|virtual|abstract|static|extends|if|else|switch|case|default|break|continue|for|while|until|instance
 //public|private|protected|static|instance|virtual|override|abstract|class|extends|if|else|switch|case|default|for|while|until|break|continue|return
-export class Keyword extends TokenReferenceElement<string> {
-    static create = () => new this();
-
+export class Keyword extends TokenContainer<string> {
     static modifierKeywords = new Set([
         "public",
         "private",
@@ -44,19 +42,19 @@ export class Keyword extends TokenReferenceElement<string> {
 
     static keywords = [...this.modifierKeywords, ...this.syntaxKeywords];
 
-    static advancePastAttributes(tokens: Token[], i: number, array?: Keyword[]): number {
-        while(i < tokens.length) {
-            yourtakingtoolong();
+    // static advancePastAttributes(tokens: Token[], i: number, array?: Keyword[]): number {
+    //     while(i < tokens.length) {
+    //         yourtakingtoolong();
     
-            if(!this.modifierKeywords.has(tokens[i].value)) break;
+    //         if(!this.modifierKeywords.has(tokens[i].value)) break;
 
-            array?.push(Keyword.fromTokens(tokens, i));
+    //         array?.push(Keyword.fromTokens(tokens, i));
 
-            i++;
-        }
+    //         i++;
+    //     }
 
-        return i;
-    }
+    //     return i;
+    // }
 
     inlineToString() {
         return `(${color(this.value, syntaxColors.name)})`

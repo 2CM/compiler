@@ -12,13 +12,13 @@ export class Type extends SyntacticElement {
         return tokens[i].type == TokenType.Identifier;
     }
 
-    read(builder: ElementBuilder) {
-        this.value = builder.readElement(Identifier);
+    static read(self: Type, builder: ElementBuilder) {
+        self.value = builder.readElement(Identifier);
 
         if(builder.matchElement(Generic)) {
-            this.generic = builder.readElement(Generic);
+            self.generic = builder.readElement(Generic);
         }
 
-        builder.finish();
+        return builder.finish();
     }
 }

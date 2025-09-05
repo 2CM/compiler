@@ -18,27 +18,27 @@ export class Class extends SyntacticElement {
     extends: Type[] = [];
     body: Member[] = [];
 
-    read(builder: ElementBuilder) {
+    static read(self: Class, builder: ElementBuilder) {
         //modifiers
         if(builder.matchElement(ModifierList)) {
-            this.modifiers = builder.readElement(ModifierList);
+            self.modifiers = builder.readElement(ModifierList);
         }
 
         builder.advancePastExpectedValue("class");
 
         
         //class name
-        this.name = builder.readElement(Identifier);
+        self.name = builder.readElement(Identifier);
 
         //generics
         if(builder.matchElement(Generic)) {
-            this.generic = builder.readElement(Generic);
+            self.generic = builder.readElement(Generic);
         }
 
         //inheritance
         if(builder.advancePastValue("extends")) {
             while(builder.going) {
-                this.extends.push(builder.readElement(Type));
+                self.extends.push(builder.readElement(Type));
                 
                 if(!builder.advancePastValue(",")) break;
             }
@@ -52,7 +52,7 @@ export class Class extends SyntacticElement {
 
             if(builder.advancePastValue("}")) break;
 
-            this.body.push(builder.readElement(Member));
+            self.body.push(builder.readElement(Member));
 
             // let element = SyntacticElement.fromPossibleElements(tokens, i, [Field, Method]);
 

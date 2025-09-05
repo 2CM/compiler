@@ -136,7 +136,9 @@ export class SyntacticElement {
         builder.finish();
     }
 
-    read(builder: ElementBuilder): void {}
+    static read(self: SyntacticElement, builder: ElementBuilder): SyntacticElement {
+        return new SyntacticElement();
+    }
 
     // static fromTokens(tokens: Token[], startIndex: number): SyntacticElement {
     //     return create(this.caller.prototype, obj => {

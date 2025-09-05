@@ -6,7 +6,8 @@ import { Literal } from "./TokenContainers/Literal";
 import { Operation } from "./Operation";
 import { Operator } from "./TokenContainers/Operator";
 import { SyntacticElement } from "./SyntacticElement";
-import { Zingle, isZingle } from "./Zingle";
+import { Zingle } from "./Zingle";
+import { ElementBuilder } from "./ElementBuilder";
 
 export class Expression extends SyntacticElement {
     left: Zingle;
@@ -15,7 +16,7 @@ export class Expression extends SyntacticElement {
     operation: Operator;
 
     static fromComponents(components: (Zingle | Operator)[]): Zingle {
-        // console.log({components})
+        console.log({components})
 
         for(let i = 0; i < Operation.operationLevels.length; i++) {
             let operationLevel = Operation.operationLevels[i];
@@ -36,7 +37,7 @@ export class Expression extends SyntacticElement {
                     right = null;
 
                     tokensToSplice = 1;
-                } else if(isZingle(components[j + 1])) { //zingle(zingle)
+                } else if(Zingle.isZingle(components[j + 1])) { //zingle(zingle)
                     right = components[j + 1] as Zingle;
 
                     let operation: Operation = Operation.Call;
@@ -101,35 +102,34 @@ export class Expression extends SyntacticElement {
         return components[0] as Zingle ?? new ExpressionList([]);
     }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
+    static read(self: Expression, builder: ElementBuilder) {
         let components: (Zingle | Operator)[] = [];
-        let i = startIndex;
 
-        while(i < tokens.length) {
+        while(builder.going) {
             yourtakingtoolong();
 
-            switch(tokens[i].type) { 
+            switch(builder.current.type) { 
                 case TokenType.Identifier:
-                    components.push(Identifier.fromTokens(tokens, i++));
+                    components.push(builder.readElement(Identifier));
 
                     break;
                 case TokenType.Literal:
-                    components.push(Literal.fromTokens(tokens, i++));
+                    components.push(builder.readElement(Literal));
                     
                     break;
                 case TokenType.Operator:
-                    components.push(Operator.fromTokens(tokens, i++));
+                    components.push(builder.readElement(Operator));
                     
                     break;
                 case TokenType.Separator:
-                    if(["(", "["].includes(tokens[i].value)) {
-                        let subExpression = Expression.fromTokens(tokens, ++i);
+                    if(builder.advancePastValue("(", "[")) {
+                        let subExpression = builder.readElement(Expression);
 
                         while(true) {
                             yourtakingtoolong();
 
-                            let back = tokens[subExpression.startIndex - 1]?.value;
-                            let front = tokens[subExpression.endIndex]?.value;
+                            let back = subExpression.tokenSource[subExpression.startIndex - 1]?.value;
+                            let front = subExpression.tokenSource[subExpression.endIndex]?.value;
 
                             if(
                                 (back == "(" && front == ")") ||
@@ -137,18 +137,19 @@ export class Expression extends SyntacticElement {
                             ) {
                                 subExpression.startIndex--;
                                 subExpression.endIndex++;
+                                builder.advance();
                             } else {
                                 break;
                             }
                         }
 
                         components.push(subExpression);
-                        i = subExpression.endIndex;
-                    } else if([")", "]", ";", ":"].includes(tokens[i].value)) {
+                        // i = subExpression.endIndex;
+                    } else if(builder.checkValue(")", "]", ";", ":")) {
                         return create(Expression.fromComponents(components), obj => {
-                            obj.tokenSource = tokens
-                            obj.startIndex = startIndex
-                            obj.endIndex = i
+                            obj.tokenSource = builder.tokens
+                            obj.startIndex = builder.element.startIndex
+                            obj.endIndex = builder.i
                         })
                     }
             }

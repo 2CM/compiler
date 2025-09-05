@@ -10,9 +10,9 @@ export class Method extends SyntacticElement {
     parameters: Parameter[] = [];
     body: Body;
 
-    read(builder: ElementBuilder) {
+    static read(self: Method, builder: ElementBuilder) {
         if(builder.matchElement(Generic)) {
-            this.generic = builder.readElement(Generic);
+            self.generic = builder.readElement(Generic);
         }
 
         builder.advancePastExpectedValue("(");
@@ -22,14 +22,14 @@ export class Method extends SyntacticElement {
             
             if(builder.advancePastValue(")")) break;
 
-            this.parameters.push(builder.readElement(Parameter));
+            self.parameters.push(builder.readElement(Parameter));
             builder.advancePastValue(",");
         }
 
-        this.body = builder.readElement(Body);
+        self.body = builder.readElement(Body);
 
         builder.advancePastExpectedValue("}");
 
-        builder.finish();
+        return builder.finish();
     }
 }

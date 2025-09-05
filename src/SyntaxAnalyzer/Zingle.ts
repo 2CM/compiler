@@ -5,10 +5,8 @@ import type { Literal } from "./TokenContainers/Literal";
 
 export type Zingle = Identifier | Literal | Expression | ExpressionList;
 
-export function isZingle(obj: any): obj is Zingle {
-    return ["Identifier", "Literal", "Expression", "ExpressionList"].includes(obj?.constructor.name);
-}
-
-export interface buh {
-    bingle: (z: number) => number
+export namespace Zingle {
+    export function isZingle(obj: any): obj is Zingle {
+        return ["Identifier", "Literal", "Expression", "ExpressionList"].includes(obj?.constructor.name);
+    }
 }

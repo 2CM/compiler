@@ -25,9 +25,7 @@ const lineContentClasses: typeof SyntacticElement[] = [
 export class Line extends SyntacticElement {
     body: Expression | LineContent;
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, builder] = ElementBuilder.initialize(tokens, startIndex, this);
-
+    static read(self: Line, builder: ElementBuilder) {
         self.body = builder.readElementFromPossibilities(lineContentClasses) ?? builder.readElement(Expression);
 
         while(builder.advancePastValue(";")) {

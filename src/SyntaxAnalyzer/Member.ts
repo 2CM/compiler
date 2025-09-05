@@ -12,20 +12,18 @@ export class Member extends SyntacticElement {
     type: Type;
     name: Identifier;
 
-    read(builder: ElementBuilder) {
+    static read(self: Member, builder: ElementBuilder) {
         if(builder.matchElement(ModifierList)) {
-            this.modifiers = builder.readElement(ModifierList);
+            self.modifiers = builder.readElement(ModifierList);
         }
         
-        this.type = builder.readElement(Type);
-        this.name = builder.readElement(Identifier);
+        self.type = builder.readElement(Type);
+        self.name = builder.readElement(Identifier);
 
         if(builder.checkValue("(", "<")) {
-            builder.continueReadingAs(Method);
+            return builder.continueReadingAs(Method);
         } else {
-            builder.continueReadingAs(Field);
+            return builder.continueReadingAs(Field);
         }
-
-        builder.finish();
     }
 }

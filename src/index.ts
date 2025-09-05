@@ -7,7 +7,11 @@ import { create } from "./Utils/Utils";
 
 var tokenized = Token.stringToTokens(`
 public static class Bello<T, T> {
-    Int32<t, t> buh;
+    Int32<t, t> buh() {
+        if(5 + 5) {
+            return;
+        }
+    }
 }
 `);
 // var tokenized = Token.stringToTokens(`
@@ -34,11 +38,9 @@ let tree = create(new SyntaxTree(), obj => {
 });
 let builder = new ElementBuilder(tree);
 
-tree.read(builder);
-
 // console.log(JSON.stringify(tree, (key: string, value: any) => key == "tokenSource" ? "buh" : value, "    "))
 
-console.log(tree);
+console.log(SyntaxTree.read(tree, builder));
 
 
 

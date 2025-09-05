@@ -1,5 +1,6 @@
 import { Token } from "../../Tokenizer/Token";
 import { create } from "../../Utils/Utils";
+import { ElementBuilder } from "../ElementBuilder";
 import { Expression } from "../Expression";
 import { Zingle } from "../Zingle";
 import { LineContent } from "./LineContent";
@@ -11,20 +12,13 @@ export class ReturnStatement extends LineContent {
         return tokens[i].value == "return";
     }
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
-        
-        tokens[i++].checkValueOrThrow("return");
+    static read(self: ReturnStatement, builder: ElementBuilder) {
+        builder.advancePastExpectedValue("return")
 
-        if(tokens[i].value != ";") {
-            let zingle = Expression.fromTokens(tokens, i);
-
-            self.value = zingle;
-            i = zingle.endIndex;
+        if(!builder.checkValue(";")) {
+            self.value = builder.readElement(Expression);
         }
 
-        self.endIndex = i;
-
-        return self;
+        return builder.finish();
     }
 }
