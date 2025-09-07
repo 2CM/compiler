@@ -5,7 +5,6 @@ import { Identifier } from "./TokenContainers/Identifier";
 import { Keyword } from "./TokenContainers/Keyword";
 import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
-import { Variable } from "./Variable";
 import { Type } from "./Type";
 import { ElementBuilder } from "./ElementBuilder";
 import { ElementMatcher } from "./ElementMatcher";
@@ -20,23 +19,16 @@ export class Generic extends SyntacticElement {
         
         while(matcher.going) {
             yourtakingtoolong();
-            
-            console.log("i", matcher.tokens[matcher.i])
 
             if(matcher.matchTypeOptional(TokenType.Identifier)) {
                 matcher.matchElementOptional(Generic);
-
-                console.log("identifier")
                 
                 if(matcher.matchValueOptional(",")) {
-                    console.log(",")
                     continue;
                 }
             }
             
             if(matcher.matchValue(">")) {
-                console.log(">")
-
                 break;
             }
 

@@ -4,7 +4,6 @@ import { Expression } from "./Expression";
 import { Identifier } from "./TokenContainers/Identifier";
 import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
-import { Variable } from "./Variable";
 import { ElementBuilder } from "./ElementBuilder";
 import { Type } from "./Type";
 

@@ -71,7 +71,7 @@ export class ElementBuilder {
     readElementFromPossibilities<T extends (typeof SyntacticElement)[]>(possibleElements: T): InstanceType<T[number]> | null {
         for(let possibleElement of possibleElements) {
             if(this.matchElement(possibleElement)) {
-                console.log(possibleElement.name)
+                // console.log(possibleElement.name)
 
                 return this.readElement(possibleElement) as InstanceType<T[number]>;
             }
