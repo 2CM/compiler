@@ -1,20 +1,14 @@
 import { Token } from "../../Tokenizer/Token";
 import { create } from "../../Utils/Utils";
+import { ElementBuilder } from "../ElementBuilder";
 import { LineContent } from "./LineContent";
 
 export class ContinueStatement extends LineContent {
-    static match(tokens: Token[], i: number) {
-        return tokens[i].value == "continue";
-    }
+    static keyword = "continue";
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
-        
-        tokens[i++].checkValueOrThrow("continue");
-        tokens[i].checkValueOrThrow(";");
+    static read(self: ContinueStatement, builder: ElementBuilder) {
+        builder.advancePastExpectedValue("continue");
 
-        self.endIndex = i;
-
-        return self;
+        return builder.finish();
     }
 }

@@ -2,6 +2,7 @@ import { Token } from "../../Tokenizer/Token";
 import { create, yourtakingtoolong } from "../../Utils/Utils";
 import { Body } from "../Body";
 import { ElementBuilder } from "../ElementBuilder";
+import { ElementMatcher } from "../ElementMatcher";
 import { Expression } from "../Expression";
 import { ExpressionList } from "../ExpressionList";
 import { Zingle } from "../Zingle";
@@ -12,9 +13,7 @@ export class IfStatement extends LineContent {
     ifBodies: Body[] = [];
     elseBody: Body;
 
-    static match(tokens: Token[], i: number) {
-        return tokens[i].value == "if";
-    }
+    static keyword = "if";
 
     static read(self: IfStatement, builder: ElementBuilder) {
         while(builder.going) {

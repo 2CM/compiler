@@ -1,11 +1,11 @@
 import { Token } from "../../Tokenizer/Token";
 import { create } from "../../Utils/Utils";
 import { Body } from "../Body";
+import { ElementBuilder } from "../ElementBuilder";
 import { Expression } from "../Expression";
 import { Line } from "../Line";
 import { Zingle } from "../Zingle";
 import { LineContent } from "./LineContent";
-
 
 export class ForStatement extends LineContent {
     initialization: Line;
@@ -13,35 +13,23 @@ export class ForStatement extends LineContent {
     increment: Zingle;
     body: Body;
 
-    static match(tokens: Token[], i: number) {
-        return tokens[i].value == "for";
-    }
+    static keyword = "for";
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
+    static read(self: ForStatement, builder: ElementBuilder) {
+        builder.advancePastExpectedValue("for");
+        builder.advancePastExpectedValue("(");
         
-        tokens[i++].checkValueOrThrow("for");
-        tokens[i++].checkValueOrThrow("(");
+        self.initialization = builder.readElement(Line);
+        self.condition = builder.readElement(Line);
+        self.increment = builder.readElement(Expression);
         
-        self.initialization = Line.fromTokens(tokens, i);
-        i = self.initialization.endIndex;
+        builder.advancePastExpectedValue(")");
+        builder.advancePastExpectedValue("{");
         
-        self.condition = Line.fromTokens(tokens, i);
-        i = self.condition.endIndex;
+        self.body = builder.readElement(Body);
 
-        self.increment = Expression.fromTokens(tokens, i);
-        i = self.increment.endIndex;
-        
-        tokens[i++].checkValueOrThrow(")");
-        tokens[i++].checkValueOrThrow("{");
-        
-        self.body = Body.fromTokens(tokens, i);
-        i = self.body.endIndex;
+        builder.advancePastExpectedValue("}")
 
-        tokens[i++].checkValueOrThrow("}");
-
-        self.endIndex = i;
-
-        return self;
+        return builder.finish();
     }
 }

@@ -5,33 +5,25 @@ import { Zingle } from "./SyntaxAnalyzer/Zingle";
 import { Token } from "./Tokenizer/Token";
 import { create } from "./Utils/Utils";
 
-var tokenized = Token.stringToTokens(`
-public static class Bello<T, T> {
-    Int32<t, t> buh() {
-        if(5 + 5) {
-            return;
-        }
-    }
-}
-`);
 // var tokenized = Token.stringToTokens(`
-// public static class Bello extends bongle, zongle {
-//     Int32 fieldbuh = 6 + 2;
-
-//     Int32 Bingle(Int32 buh, Int32 ouh) {
-//         switch(zong) {
-//             case 1:
-//                 if(you == true) {
-//                     continue;
-//                 }
-//                 break;
-//             default:
-//         }
-
-//         return true;
+// class a {
+//     Int32 a() {
+//         Int32<T, U> zingle = 4 + 2;
 //     }
 // }
 // `);
+// var tokenized = Token.stringToTokens(`zingle <bujh<a,b,c>, zim> (2);`);
+var tokenized = Token.stringToTokens(`
+public static class Bello extends bongle, zongle {
+    Int32 fieldbuh = 6 + 2;
+
+    Int32 Bingle<Zingle>(Int32<T> buh = 5 + 2) {
+        buh<T,T2>();
+
+        return true;
+    }
+}
+`);
 
 let tree = create(new SyntaxTree(), obj => {
     obj.tokenSource = tokenized;

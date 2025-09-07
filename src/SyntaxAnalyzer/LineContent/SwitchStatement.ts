@@ -1,6 +1,7 @@
 import { Token, TokenType } from "../../Tokenizer/Token";
 import { create, yourtakingtoolong } from "../../Utils/Utils";
 import { Body } from "../Body";
+import { ElementBuilder } from "../ElementBuilder";
 import { Expression } from "../Expression";
 import { ExpressionList } from "../ExpressionList";
 import { SyntacticElement } from "../SyntacticElement";
@@ -12,66 +13,55 @@ export class SwitchSection extends SyntacticElement {
     operator: Operator | null;
     value: Zingle | null;
     body: Body;
+
+    static read(self: SwitchSection, builder: ElementBuilder) {
+        if(builder.advancePastValue("case")) {
+            if(builder.checkType(TokenType.Operator)) {
+                self.operator = builder.readElement(Operator);
+            }
+
+            self.value = builder.readElement(Expression);
+        } else {
+            builder.advancePastExpectedValue("default");
+        }
+
+        builder.advancePastExpectedValue(":");
+
+        self.body = builder.readElement(Body);
+
+        return builder.finish();
+    }
 }
 
 export class SwitchStatement extends LineContent {
     switchExpression: Zingle;
     body: SwitchSection[] = [];
 
-    static match(tokens: Token[], i: number) {
-        return tokens[i].value == "switch";
-    }
+    static keyword = "switch";
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
+    static read(self: SwitchStatement, builder: ElementBuilder) {
+        builder.advancePastExpectedValue("switch");
+        builder.advancePastExpectedValue("(");
 
-        tokens[i++].checkValueOrThrow("switch");
-        tokens[i++].checkValueOrThrow("(");
+        self.switchExpression = builder.readElement(Expression);
 
-        let switchExpression = Expression.fromTokens(tokens, i);
-        i = switchExpression.endIndex;
-
-        i++;
-
-        tokens[i++].checkValueOrThrow("{");
-
+        builder.advancePastExpectedValue(")")
+        builder.advancePastExpectedValue("{")
+        
         //todo: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/selection-statements#case-guards
-
-        while(i < tokens.length) {
+        
+        while(builder.going) {
             yourtakingtoolong();
-
-            if(tokens[i].value == "}") {
+            
+            if(builder.checkValue("}")) {
                 break;
             }
-
-            let section = create(new SwitchSection(), obj => {
-                obj.startIndex = i
-                obj.tokenSource = tokens
-                self.body.push(obj)
-            });
-
-            if(tokens[i].value == "case") {
-                i++;
-                
-                if(tokens[i].type == TokenType.Operator) {
-                    section.operator = Operator.fromTokens(tokens, i++);
-                }
-
-                section.value = Expression.fromTokens(tokens, i);
-                i = section.value.endIndex;
-            } else {
-                tokens[i++].checkValueOrThrow("default")
-            }
-
-            tokens[i++].checkValueOrThrow(":");
-
-            section.body = Body.fromTokens(tokens, i, true)
-            i = section.body.endIndex;
-            section.endIndex = i;
+            
+            self.body.push(builder.readElement(SwitchSection));
         }
 
-        self.endIndex = i + 1;
+        builder.advancePastExpectedValue("}");
         
-        return self;
+        return builder.finish();
     }
 }

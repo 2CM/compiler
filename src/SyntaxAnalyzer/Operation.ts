@@ -2,6 +2,8 @@ export enum Operation {
     Access,
     Call,
     Index,
+    Generic,
+    Declare,
     New,
     PostfixIncrement,
     PostfixDecrement,
@@ -57,7 +59,9 @@ export namespace Operation {
         [
             Operation.Access,
             Operation.Call,
-            Operation.Index
+            Operation.Index,
+            Operation.Generic,
+            Operation.Declare,
         ],
         [
             Operation.New
@@ -146,6 +150,8 @@ export namespace Operation {
         ".": Operation.Access,
         // "": Operation.Call,
         // "": Operation.Index,
+        // "": Operation.Generic,
+        // "": Operation.Declare,
         "new": Operation.New,
         // "": Operation.PostfixIncrement,
         // "": Operation.PostfixDecrement,

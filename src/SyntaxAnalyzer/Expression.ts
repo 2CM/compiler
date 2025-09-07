@@ -8,14 +8,16 @@ import { Operator } from "./TokenContainers/Operator";
 import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { ElementBuilder } from "./ElementBuilder";
+import { Generic } from "./Generic";
+
+type Component = Zingle | Operator;
 
 export class Expression extends SyntacticElement {
     left: Zingle;
     right?: Zingle;
-    // @enumValue(Expression, Operation)
     operation: Operator;
 
-    static fromComponents(components: (Zingle | Operator)[]): Zingle {
+    static fromComponents(components: Component[]): Zingle {
         console.log({components})
 
         for(let i = 0; i < Operation.operationLevels.length; i++) {
@@ -25,9 +27,9 @@ export class Expression extends SyntacticElement {
             while(j < components.length - 1) {
                 yourtakingtoolong();
 
-                let left: Zingle = components[j] as Zingle;
+                let left: Zingle = components[j];
                 let operator: Operator = components[j + 1] as Operator;
-                let right: Zingle | null = components[j + 2] as Zingle;
+                let right: Zingle | null = components[j + 2];
 
                 let tokensToSplice = 2;
 
@@ -40,12 +42,20 @@ export class Expression extends SyntacticElement {
                 } else if(Zingle.isZingle(components[j + 1])) { //zingle(zingle)
                     right = components[j + 1] as Zingle;
 
-                    let operation: Operation = Operation.Call;
+                    let operation: Operation;
 
                     switch(right.tokenSource[right.endIndex - 1].value) {
                         case "]": operation = Operation.Index; break;
                         case ")": operation = Operation.Call; break;
-                        default: throw new Error("what are you");
+                        case ">": operation = Operation.Generic; break;
+                        default:
+                            if(right instanceof Identifier) {
+                                operation = Operation.Declare;
+
+                                break;
+                            }
+
+                            throw new Error("what are you");
                     }
 
                     operator = create(new Operator(), obj => {
@@ -103,7 +113,7 @@ export class Expression extends SyntacticElement {
     }
 
     static read(self: Expression, builder: ElementBuilder) {
-        let components: (Zingle | Operator)[] = [];
+        let components: Component[] = [];
 
         while(builder.going) {
             yourtakingtoolong();
@@ -118,6 +128,12 @@ export class Expression extends SyntacticElement {
                     
                     break;
                 case TokenType.Operator:
+                    if(builder.matchElement(Generic, false)) {
+                        components.push(builder.readElement(Generic));
+
+                        break;
+                    }
+
                     components.push(builder.readElement(Operator));
                     
                     break;
@@ -144,7 +160,6 @@ export class Expression extends SyntacticElement {
                         }
 
                         components.push(subExpression);
-                        // i = subExpression.endIndex;
                     } else if(builder.checkValue(")", "]", ";", ":")) {
                         return create(Expression.fromComponents(components), obj => {
                             obj.tokenSource = builder.tokens

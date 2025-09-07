@@ -4,13 +4,16 @@ import { Parameter } from "./Parameter";
 import { Generic } from "./Generic";
 import { ElementBuilder } from "./ElementBuilder";
 import { SyntacticElement } from "./SyntacticElement";
+import { TokenType } from "../Tokenizer/Token";
 
 export class Method extends SyntacticElement {
     generic: Generic;
-    parameters: Parameter[] = [];
+    parameters: Parameter[];
     body: Body;
 
     static read(self: Method, builder: ElementBuilder) {
+        self.parameters = [];
+
         if(builder.matchElement(Generic)) {
             self.generic = builder.readElement(Generic);
         }
@@ -20,10 +23,13 @@ export class Method extends SyntacticElement {
         while(builder.going) {
             yourtakingtoolong();
             
-            if(builder.advancePastValue(")")) break;
+            if(builder.checkType(TokenType.Identifier)) {
+                self.parameters.push(builder.readElement(Parameter));
 
-            self.parameters.push(builder.readElement(Parameter));
-            builder.advancePastValue(",");
+                if(builder.advancePastValue(",")) continue;
+            }
+            
+            if(builder.advancePastExpectedValue(")")) break;
         }
 
         self.body = builder.readElement(Body);

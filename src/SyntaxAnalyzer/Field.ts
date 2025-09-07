@@ -7,8 +7,6 @@ export class Field extends SyntacticElement {
     defaultValue?: Zingle;
 
     static read(self: Field, builder: ElementBuilder) {
-        console.log("gijijefij")
-
         if(builder.advancePastValue("=")) {
             self.defaultValue = builder.readElement(Expression);
         }

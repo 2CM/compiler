@@ -8,12 +8,10 @@ import { LineContent } from "./LineContent";
 export class ReturnStatement extends LineContent {
     value: Zingle;
 
-    static match(tokens: Token[], i: number) {
-        return tokens[i].value == "return";
-    }
+    static keyword = "return";
 
     static read(self: ReturnStatement, builder: ElementBuilder) {
-        builder.advancePastExpectedValue("return")
+        builder.advancePastExpectedValue("return");
 
         if(!builder.checkValue(";")) {
             self.value = builder.readElement(Expression);

@@ -1,5 +1,6 @@
 import { Token, TokenType } from "../Tokenizer/Token";
 import { create } from "../Utils/Utils";
+import { ElementMatcher } from "./ElementMatcher";
 import { Field } from "./Field";
 import { SyntacticElement } from "./SyntacticElement";
 
@@ -31,14 +32,14 @@ export class ElementBuilder {
         return [element, new ElementBuilder(element)];
     }
 
-    matchElement<T extends SyntacticElement>(elementType: new () => T): boolean {
-        return (elementType as any as typeof SyntacticElement).match(this.tokens, this.i);
+    matchElement<T extends SyntacticElement>(elementType: new () => T, lazy: boolean = true): boolean {
+        return (elementType as any as typeof SyntacticElement).match(new ElementMatcher(this.tokens, this.i, lazy));
     }
 
     matchExpectedElement<T extends SyntacticElement>(elementType: new () => T): boolean {
         if(this.matchElement(elementType)) return true;
 
-        throw new Error(`expected ${elementType.name}`)
+        throw this.throwExpectedError(elementType.name.quote());
     }
     
     readElement<T extends SyntacticElement>(elementType: new () => T): T {
@@ -56,13 +57,13 @@ export class ElementBuilder {
         return outElement as T;
     }
 
-    continueReadingAs<T extends SyntacticElement>(elementType: new () => T): T {
+    continueReadingAs<T extends SyntacticElement>(elementType: typeof SyntacticElement): T {
         (this.element as any).__proto__ = elementType.prototype;
         // this.element.__constructor = elementType.constructor;
         // this.element.constructor.call(this.element)
         // elementType.constructor.call(this.element);
 
-        console.log(elementType.name)
+        // console.log(elementType.name)
 
         return (elementType as any as typeof SyntacticElement).read(this.element, this) as T;
     }
@@ -70,6 +71,8 @@ export class ElementBuilder {
     readElementFromPossibilities<T extends (typeof SyntacticElement)[]>(possibleElements: T): InstanceType<T[number]> | null {
         for(let possibleElement of possibleElements) {
             if(this.matchElement(possibleElement)) {
+                console.log(possibleElement.name)
+
                 return this.readElement(possibleElement) as InstanceType<T[number]>;
             }
         }
@@ -104,7 +107,7 @@ export class ElementBuilder {
     advancePastExpectedValue(...values: string[]) {
         if(this.advancePastValue(...values)) return true;
 
-        throw new Error(`expected ${values.join(", ")}`);
+        throw this.throwExpectedError(values.map(value => value.quote()).joinInEnglish("or"));
     }
 
     checkType(type: TokenType) {
@@ -124,7 +127,11 @@ export class ElementBuilder {
     advancePastExpectedType(type: TokenType) {
         if(this.advancePastType(type)) return true;
 
-        throw new Error(`expected ${type}`);
+        throw this.throwExpectedError(TokenType[type]);
+    }
+
+    throwExpectedError(str: string) {
+        throw new Error(`Expected ${str} at "${this.tokens[this.i].value}"`)
     }
 
     finish() {

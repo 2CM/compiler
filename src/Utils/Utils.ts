@@ -211,8 +211,29 @@ declare global {
     interface Number {
         toHexString: () => string;
     }
+
+    interface String {
+        quote: () => string
+    }
+
+    interface Array<T> {
+        joinInEnglish: (conjunction: string) => string
+    }
 }
 
 Number.prototype.toHexString = function() {
     return "0x" + this.toString(16);
 }
+
+String.prototype.quote = function() {
+    return `"${this}"`;
+}
+
+//freaky
+Object.defineProperty(Array.prototype, "joinInEnglish", {
+    value: function(conjunction: string) {
+        if(this.length < 3) return this.join(` ${conjunction} `)
+
+        return `${this.slice(0,-1).join(", ")}, ${conjunction} ${this.at(-1)}`;
+    }
+})

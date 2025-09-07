@@ -6,17 +6,21 @@ import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { Variable } from "./Variable";
 import { ElementBuilder } from "./ElementBuilder";
+import { Type } from "./Type";
 
-export class Parameter extends Variable {
-    static match(tokens: Token[], i: number) {
-        return super.match(tokens, i, false);
-    }
+export class Parameter extends SyntacticElement {
+    type: Type;
+    name: Identifier;
+    defaultValue: Zingle;
 
     static read(self: Parameter, builder: ElementBuilder) {
-        builder.advancePastExpectedValue(",", ")")
+        self.type = builder.readElement(Type);
+        self.name = builder.readElement(Identifier);
+        
+        if(builder.advancePastValue("=")) {
+            self.defaultValue = builder.readElement(Expression);
+        }
 
-        self.endIndex = i;
-
-        return self;
+        return builder.finish();
     }
 }

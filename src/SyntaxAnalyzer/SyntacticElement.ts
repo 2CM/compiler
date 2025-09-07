@@ -1,6 +1,7 @@
 import { Token } from "../Tokenizer/Token";
 import { create, getAnsiColorCode, ignoreInLogging, indentationString, syntaxColors } from "../Utils/Utils";
 import { ElementBuilder } from "./ElementBuilder";
+import { ElementMatcher } from "./ElementMatcher";
 import { Zingle } from "./Zingle";
 
 export class SyntacticElement {
@@ -110,12 +111,8 @@ export class SyntacticElement {
         // return str;
     }
 
-    static match(tokens: Token[], i: number): boolean {
+    static match(matcher: ElementMatcher): boolean {
         return false;
-    }
-
-    static matchOrThrow(tokens: Token[], i: number) {
-        if(!this.match(tokens, i)) throw new Error(`expected ${this.constructor.name}`);
     }
 
     static initialize<T extends SyntacticElement>(tokens: Token[], startIndex: number, constructor: new () => T): [T, number] {

@@ -1,20 +1,15 @@
 import { Token } from "../../Tokenizer/Token";
 import { create } from "../../Utils/Utils";
+import { ElementBuilder } from "../ElementBuilder";
+import { ElementMatcher } from "../ElementMatcher";
 import { LineContent } from "./LineContent";
 
 export class BreakStatement extends LineContent {
-    static match(tokens: Token[], i: number) {
-        return tokens[i].value == "break";
-    }
+    static keyword = "break";
 
-    static fromTokens(tokens: Token[], startIndex: number) {
-        let [self, i] = super.initialize(tokens, startIndex, this);
-        
-        tokens[i++].checkValueOrThrow("break");
-        tokens[i].checkValueOrThrow(";");
+    static read(self: BreakStatement, builder: ElementBuilder) {
+        builder.advancePastExpectedValue("break");
 
-        self.endIndex = i;
-
-        return self;
+        return builder.finish();
     }
 }
