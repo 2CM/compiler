@@ -80,7 +80,7 @@ export class ElementMatcher {
     }
 
     invalidate() {
-        console.log("invalid")
+        // console.log("invalid")
 
         this.result = false;
         this.skip = true;
