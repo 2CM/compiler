@@ -1,3 +1,4 @@
+import { ILEmitter } from "../IntermediateCodeGenerator/ILEmitter";
 import { Token } from "../Tokenizer/Token";
 import { create, getAnsiColorCode, ignoreInLogging, indentationString, syntaxColors } from "../Utils/Utils";
 import { ElementBuilder } from "./ElementBuilder";

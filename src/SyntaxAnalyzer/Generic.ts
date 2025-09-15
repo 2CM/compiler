@@ -53,4 +53,8 @@ export class Generic extends SyntacticElement {
 
         return builder.finish();
     }
+
+    toString(): string {
+        return `<${this.types.map(type => type.toString()).join(", ")}>`
+    }
 }

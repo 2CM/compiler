@@ -10,13 +10,19 @@ import { Type } from "./Type";
 import { ElementBuilder } from "./ElementBuilder";
 import { Member } from "./Member";
 import { ModifierList } from "./ModifierList";
+import { IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { IHasId } from "../SemanticAnalyzer/IHasId";
 
-export class Class extends SyntacticElement {
+export class Class extends SyntacticElement implements IHasScope, IHasId {
     modifiers: ModifierList;
     name: Identifier;
     generic: Generic;
     extends: Type[] = [];
     body: Member[] = [];
+
+    identifiers: IdentifierMap = {};
+
+    id: string;
 
     static read(self: Class, builder: ElementBuilder) {
         //modifiers
@@ -65,5 +71,29 @@ export class Class extends SyntacticElement {
         }
 
         return builder.finish();
+    }
+
+    createId(parentId: string) {
+        this.id = (parentId ? `${parentId}.` : "") + this.name.value;
+    }
+
+    registerIdentifiers() {
+        for(let member of this.body) {
+            if(member instanceof Field || member instanceof Method) {
+                member.createId(this.id)
+
+                this.identifiers[member.name.value] = new IdentifierInformation(
+                    member instanceof Field ?
+                        IdentifierReferenceType.Field :
+                        IdentifierReferenceType.Method,
+                    member.id,
+                    member.type.name.value
+                )
+
+                if(member instanceof Method) {
+                    member.registerIdentifiers();
+                }
+            }
+        }
     }
 }

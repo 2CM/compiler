@@ -25,14 +25,13 @@ public static class Bello extends bongle, zongle {
 }
 `);
 
-let tree = create(new SyntaxTree(), obj => {
-    obj.tokenSource = tokenized;
-});
-let builder = new ElementBuilder(tree);
+let tree = ElementBuilder.readFromTokens(tokenized, 0, SyntaxTree);
+
+tree.registerIdentifiers();
 
 // console.log(JSON.stringify(tree, (key: string, value: any) => key == "tokenSource" ? "buh" : value, "    "))
 
-console.log(SyntaxTree.read(tree, builder));
+console.log(tree);
 
 
 

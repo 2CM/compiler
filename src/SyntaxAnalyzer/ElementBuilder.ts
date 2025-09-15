@@ -23,13 +23,15 @@ export class ElementBuilder {
         return this.i < this.tokens.length;
     }
 
-    static initialize<T extends SyntacticElement>(tokens: Token[], startIndex: number, constructor: new () => T): [T, ElementBuilder] {
-        let element = create(new constructor(), obj => {
+    static readFromTokens<T extends SyntacticElement>(tokens: Token[], startIndex: number, elementType: new () => T): T {
+        let element = create(new elementType(), obj => {
             obj.startIndex = startIndex;
             obj.tokenSource = tokens;
         });
-        
-        return [element, new ElementBuilder(element)];
+
+        let builder = new ElementBuilder(element);
+
+        return builder.readElement(elementType)
     }
 
     matchElement<T extends SyntacticElement>(elementType: new () => T, lazy: boolean = true): boolean {
@@ -59,13 +61,8 @@ export class ElementBuilder {
 
     continueReadingAs<T extends SyntacticElement>(elementType: typeof SyntacticElement): T {
         (this.element as any).__proto__ = elementType.prototype;
-        // this.element.__constructor = elementType.constructor;
-        // this.element.constructor.call(this.element)
-        // elementType.constructor.call(this.element);
 
-        // console.log(elementType.name)
-
-        return (elementType as any as typeof SyntacticElement).read(this.element, this) as T;
+        return elementType.read(this.element, this) as T;
     }
 
     readElementFromPossibilities<T extends (typeof SyntacticElement)[]>(possibleElements: T): InstanceType<T[number]> | null {

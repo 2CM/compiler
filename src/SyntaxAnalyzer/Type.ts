@@ -6,7 +6,7 @@ import { SyntacticElement } from "./SyntacticElement";
 import { Identifier } from "./TokenContainers/Identifier";
 
 export class Type extends SyntacticElement {
-    value: Identifier;
+    name: Identifier;
     generic: Generic;
 
     static match(matcher: ElementMatcher) {
@@ -16,12 +16,16 @@ export class Type extends SyntacticElement {
     }
 
     static read(self: Type, builder: ElementBuilder) {
-        self.value = builder.readElement(Identifier);
+        self.name = builder.readElement(Identifier);
 
         if(builder.matchElement(Generic)) {
             self.generic = builder.readElement(Generic);
         }
 
         return builder.finish();
+    }
+
+    toString(): string {
+        return this.name.value + (this.generic ? `<${this.generic.toString()}>` : "")
     }
 }

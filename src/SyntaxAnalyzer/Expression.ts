@@ -9,6 +9,7 @@ import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { ElementBuilder } from "./ElementBuilder";
 import { Generic } from "./Generic";
+import { ILEmitter } from "../IntermediateCodeGenerator/ILEmitter";
 
 type Component = Zingle | Operator;
 
@@ -171,5 +172,9 @@ export class Expression extends SyntacticElement {
         }
 
         throw new Error("what");
+    }
+
+    emitIL(emitter: ILEmitter) {
+        
     }
 }

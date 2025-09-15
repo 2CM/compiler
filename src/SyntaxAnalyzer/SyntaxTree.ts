@@ -1,11 +1,14 @@
+import { IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
 import { Token, TokenType } from "../Tokenizer/Token";
-import { create, yourtakingtoolong } from "../Utils/Utils";
+import { create, enumValue, yourtakingtoolong } from "../Utils/Utils";
 import { Class } from "./Class";
 import { ElementBuilder } from "./ElementBuilder";
 import { SyntacticElement } from "./SyntacticElement";
 
-export class SyntaxTree extends SyntacticElement {
+export class SyntaxTree extends SyntacticElement implements IHasScope {
     body: Class[] = [];
+
+    identifiers: IdentifierMap = {};
 
     static read(self: SyntaxTree, builder: ElementBuilder) {
         while(builder.going) {
@@ -15,5 +18,20 @@ export class SyntaxTree extends SyntacticElement {
         }
 
         return builder.finish();
+    }
+
+    registerIdentifiers() {
+        for(let item of this.body) {
+            item.createId("");
+
+            this.identifiers[item.name.value] = new IdentifierInformation(
+                IdentifierReferenceType.Type,
+                item.id
+            )
+        }
+
+        for(let item of this.body) {
+            item.registerIdentifiers();
+        }
     }
 }
