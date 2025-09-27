@@ -21,7 +21,6 @@ export class Keyword extends TokenContainer<string> {
 
     static syntaxKeywords = new Set([
         "class",
-        "extends",
 
         "if",
         "else",

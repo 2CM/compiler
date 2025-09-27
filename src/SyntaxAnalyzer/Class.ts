@@ -65,7 +65,7 @@ export class Class extends SyntacticElement implements IHasScope, IHasId, ICreat
         }
 
         //inheritance
-        if(builder.advancePastValue("extends")) {
+        if(builder.advancePastValue(":")) {
             while(builder.going) {
                 self.extends.push(builder.readElement(Type));
                 

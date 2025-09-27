@@ -28,7 +28,7 @@ namespace C {
         public class Class3 {}
     }
     
-    public class Class4<T, U> extends A.C.D.Class1<T, D.Class3> {
+    public class Class4<T, U> : A.C.D.Class1<T, D.Class3> {
         D.Class1<U, D.Class3> zingle(Class4 a, A.C.D.Class1 b) {}
     }
 }
