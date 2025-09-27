@@ -58,6 +58,41 @@ export function colorWithType(str: any) {
 let enumValues: Record<string, Record<string, any>> = {};
 let ignoreInLoggings: Set<string> = new Set<string>();
 
+export function formatAndColorWithType(value: any, parentObj?: any, key?: any, objCallback?: () => void) {
+    let type = typeof(value ?? undefined);
+    let str = "";
+
+    switch(type) {
+        case "number":
+            let enumType = enumValues[parentObj?.constructor?.name]?.[key] ?? null;
+
+            if(enumType) {
+                str += color(enumType[value] as string, syntaxColors.type);
+                
+                break;
+            }
+        case "boolean":
+        case "undefined":
+            str += color(value?.toString() ?? "undefined", typeof(value) == "number" ? syntaxColors.number : syntaxColors.boolean);
+
+            break;
+        case "string":
+            str += color(`"${value}"`, syntaxColors.string);
+
+            break;
+        default:
+            str += getConstructorLabel(value);
+
+            if(value.inlineToString) {
+                str += " " + value.inlineToString();
+            }
+
+            break;
+    }
+
+    return str;
+}
+
 export function enumValue(constructor: any, type: any) {
     return function(target: any, propertyKey: string) {
         if(!enumValues[constructor.name]) enumValues[constructor.name] = {};
@@ -72,67 +107,81 @@ export function ignoreInLogging() {
     }
 }
 
-function betterToString(obj: any) {
-    function getConstructorLabel(value: any) {
-        return Array.isArray(value) ? 
+function getConstructorLabel(value: any) {
+    return (
+        Array.isArray(value) ?
             `[${colorWithType(value.length || "")}]` :
+        
+        Object.keys(value).length == 0 ?
+            `{}` :
+        
             color(value?.constructor?.name ?? "Object", syntaxColors.type)
-    }
+    );
+}
 
-    function recur(obj: any, depth: number) {
-        let str = "";
+function betterToString(obj: any) {
+    let str = "";
+    let seen = new Map<any, {index: number, labelLocation: number, needsReferenceLabel: boolean}>();
+
+    function recur(obj: any, depth: number, noRecur: boolean = false) {
         let indentation = colorInfinite(indentationString.repeat(depth), "#404040");
+        let seenInfo = seen.get(obj);
+        
+        if(seenInfo) {
+            seenInfo.needsReferenceLabel = true;
+            str += color(` [see #${seenInfo.index}]`, syntaxColors.error);
+        } else {
+            seen.set(obj, {labelLocation: str.length, index: seen.size + 1, needsReferenceLabel: false});
+        }
+
+        if(noRecur) return;
 
         for(let key in obj) {
-            // if(key == "tokenSource") continue;
             if(ignoreInLoggings.has(key)) continue;
 
             str += `\n${indentation}`;
 
             let value = obj[key];
+            
             if(typeof(value) == "function") {
                 value = value.call(obj, indentation);
             }
 
-            if(!Array.isArray(obj)) str += color(`${key}: `, syntaxColors.value);
+            if(!Array.isArray(obj)) {
+                str += obj?.constructor == Object ?
+                    formatAndColorWithType(key) : //todo: abstract type formatting and coloring
+                    color(`${key}`, syntaxColors.value)
 
-            let type = typeof(value ?? undefined);
+                str += ": "
+            }
+            
+            str += formatAndColorWithType(value, obj, key);
 
-            switch(type) {
-                case "number":
-                    let enumType = enumValues[obj?.constructor?.name]?.[key] ?? null;
-
-                    if(enumType) {
-                        str += color(enumType[value] as string, syntaxColors.type);
-                        
-                        break;
-                    }
-                case "boolean":
-                case "undefined":
-                    str += color(value?.toString() ?? "undefined", typeof(value) == "number" ? syntaxColors.number : syntaxColors.boolean);
-
-                    break;
-                case "string":
-                    str += color(`"${value}"`, syntaxColors.string);
-
-                    break;
-                default:
-                    str += getConstructorLabel(value);
-
-                    if(value.inlineToString) {
-                        str += " " + value.inlineToString();
-                    } else {
-                        str += recur(value, depth + 1);
-                    }
-
-                    break;
+            if(typeof(value) == "object" && !noRecur) {
+                recur(value, depth + 1, seen.has(value));
             }
         }
-
-        return str;
     }
 
-    return getConstructorLabel(obj) + recur(obj, 1);
+    str += getConstructorLabel(obj);
+
+    recur(obj, 1);
+    
+    let newStr = "";
+    let i = 0;
+
+    for(let seenInfo of seen) {
+        if(seenInfo[1].needsReferenceLabel) {
+            newStr += str.slice(i, seenInfo[1].labelLocation);
+            newStr += color(` [#${seenInfo[1].index}]`, syntaxColors.error);
+
+            i = seenInfo[1].labelLocation;
+        }
+    }
+
+    newStr += str.slice(i);
+
+    return newStr;
 }
 
 const origConsoleLog = console.log;

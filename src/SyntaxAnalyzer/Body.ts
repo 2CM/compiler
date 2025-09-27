@@ -1,3 +1,6 @@
+import { IL } from "../IL/IL";
+import { ICreatesIlThing } from "../IntermediateCodeGenerator/ICreatesIlThing";
+import { IlEmitter } from "../IntermediateCodeGenerator/IlEmitter";
 import { hasScope, IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
 import { Token } from "../Tokenizer/Token";
 import { create, yourtakingtoolong } from "../Utils/Utils";
@@ -8,7 +11,7 @@ import { Operation } from "./Operation";
 import { SyntacticElement } from "./SyntacticElement";
 import { Identifier } from "./TokenContainers/Identifier";
 
-export class Body extends SyntacticElement implements IHasScope {
+export class Body extends SyntacticElement implements IHasScope, ICreatesIlThing<IL.Instruction[]> {
     body: Line[] = [];
 
     identifiers: IdentifierMap = {};
@@ -51,5 +54,15 @@ export class Body extends SyntacticElement implements IHasScope {
         }
 
         return counter;
+    }
+
+    createIlThing() {
+        let emitter = new IlEmitter();
+
+        for(let line of this.body) {
+            line.body.emitIl(emitter);
+        }
+
+        return emitter.getInstructions();
     }
 }

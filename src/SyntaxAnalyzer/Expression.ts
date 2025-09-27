@@ -9,11 +9,11 @@ import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { ElementBuilder } from "./ElementBuilder";
 import { Generic } from "./Generic";
-import { ILEmitter } from "../IntermediateCodeGenerator/ILEmitter";
+import { IEmitsIl, IlEmitter } from "../IntermediateCodeGenerator/IlEmitter";
 
 type Component = Zingle | Operator;
 
-export class Expression extends SyntacticElement {
+export class Expression extends SyntacticElement implements IEmitsIl {
     left: Zingle;
     right?: Zingle;
     operation: Operator;
@@ -174,7 +174,31 @@ export class Expression extends SyntacticElement {
         throw new Error("what");
     }
 
-    emitIL(emitter: ILEmitter) {
-        
+    emitIl(emitter: IlEmitter) {
+        if(this.left instanceof Generic) throw new Error("weird generic position 2 electric boogaloo left side");
+        if(this.right instanceof Generic) throw new Error("weird generic position 2 electric boogaloo right side");
+
+        switch(this.operation.value) {
+            case Operation.Declare:
+                this.right?.emitIl(emitter);
+            case Operation.Access:
+                //rightType = emitter.blahblahblah
+                
+            case Operation.Index:
+            case Operation.Call:
+            case Operation.Assign:
+        }
+
+        this.left.emitIl(emitter);
+        this.right?.emitIl(emitter);
+        this.operation.emitIl(emitter);
     }
 }
+
+/*
+bingle.zingle[0] = hello(Int32 buh = 5, bongle.b);
+
+left
+right
+index
+*/

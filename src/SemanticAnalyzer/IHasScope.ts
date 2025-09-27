@@ -14,9 +14,9 @@ export enum IdentifierReferenceType {
 
 export class IdentifierInformation {
     @enumValue(IdentifierInformation, IdentifierReferenceType)
-    referenceType: IdentifierReferenceType
-    id: string | number
-    typeId?: string
+    referenceType: IdentifierReferenceType;
+    id: string | number;
+    typeId?: string;
 
     constructor(referenceType: IdentifierReferenceType, id: string | number, typeId?: string) {
         this.referenceType = referenceType;
@@ -29,7 +29,7 @@ export type IdentifierMap = Record<string, IdentifierInformation>
 
 export interface IHasScope {
     identifiers: IdentifierMap
-    registerIdentifiers: (...data: any[]) => number | void;
+    registerIdentifiers(...data: any[]): number | void;
 }
 
 export function hasScope(obj: any): obj is IHasScope {

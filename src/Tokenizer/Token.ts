@@ -60,12 +60,12 @@ export class Token {
 
         let regex = new RegExp(
             [
+                /(?<whitespace>[\n\s]+|\/\*(.+)?\*\/|\/\/(.+)?)/,
                 `(?<keyword>${keywordMatch})`,
                 /(?<literal>(-?\d+(\.\d+)?|("[^"]+")|true|false))/,
                 /(?<identifier>[A-Z|a-z]([A-Z|a-z|0-9]+)?)/,
                 `(?<operator>${operatorMatch})`,
                 /(?<separator>[()[\]{};:\<|\>])/,
-                /(?<whitespace>[\n\s]+)/,
             ].map(regex => regex instanceof RegExp ? regex.source : regex).join("|"),
             "y"
         );

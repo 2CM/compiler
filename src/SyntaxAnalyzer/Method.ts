@@ -1,4 +1,4 @@
-import { yourtakingtoolong } from "../Utils/Utils";
+import { create, yourtakingtoolong } from "../Utils/Utils";
 import { Body } from "./Body";
 import { Parameter } from "./Parameter";
 import { Generic } from "./Generic";
@@ -12,15 +12,23 @@ import { Identifier } from "./TokenContainers/Identifier";
 import { Keyword } from "./TokenContainers/Keyword";
 import { IHasId } from "../SemanticAnalyzer/IHasId";
 import { Member } from "./Member";
+import { ICreatesIlThing } from "../IntermediateCodeGenerator/ICreatesIlThing";
+import { IL } from "../IL/IL";
+import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSemanticInformation";
+import { MethodInformation } from "../SemanticAnalyzer/ThingInformation/MethodInformation";
+import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
+import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
 
-export class Method extends Member implements IHasScope, IHasId {
+export class Method extends Member implements IHasScope, IHasId, ICreatesIlThing<IL.Method>, IGeneratesSemanticInformation<MethodInformation> {
     generic: Generic;
     parameters: Parameter[];
     body: Body;
 
     identifiers: IdentifierMap = {};
 
-    id: string
+    id: string;
+
+    declare semanticInformation: MethodInformation;
 
     static read(self: Method, builder: ElementBuilder) {
         self.parameters = [];
@@ -69,4 +77,41 @@ export class Method extends Member implements IHasScope, IHasId {
 
         this.body.registerIdentifiers(0);
     }
+
+    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: ClassInformation) {
+        parent.methods[this.name.value] = create(new MethodInformation(), obj => {
+            obj.name = this.name.value;
+            obj.type = this.type.getTypeReference(path);
+            
+            for(let parameter of this.parameters) {
+                parameter.generateSemanticInformation(path, obj);
+            }
+
+            this.semanticInformation = obj;
+        })
+    }
+    
+
+    createIlThing() {
+        return create(new IL.Method(), obj => {
+            obj.attributes = this.modifiers.createIlThing();
+            obj.returnType = this.type.toString();
+            obj.name = this.name.value;
+            obj.fullName = this.id;
+            obj.parameters = this.parameters.map((param, i) => param.createIlThing(i));
+            obj.body = this.body.createIlThing();
+            
+            for(let identifierKey in this.identifiers) {
+                let identifier = this.identifiers[identifierKey];
+
+                if(identifier.referenceType == IdentifierReferenceType.Local) {
+                    obj.locals.push(create(new IL.Local(), obj => {
+                        obj.type = identifier.typeId ?? "what";
+                        obj.name = identifierKey;
+                        obj.index = identifier.id as number;
+                    }))
+                }
+            }
+        })
+    }    
 }

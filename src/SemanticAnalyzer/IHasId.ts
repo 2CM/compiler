@@ -1,5 +1,5 @@
 export interface IHasId {
-    id: string
+    id: string;
 
-    createId: (parentId: string) => void
+    createId(parentId: string): void
 }

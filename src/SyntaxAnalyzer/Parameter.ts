@@ -6,11 +6,22 @@ import { SyntacticElement } from "./SyntacticElement";
 import { Zingle } from "./Zingle";
 import { ElementBuilder } from "./ElementBuilder";
 import { Type } from "./Type";
+import { ICreatesIlThing } from "../IntermediateCodeGenerator/ICreatesIlThing";
+import { IL } from "../IL/IL";
+import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSemanticInformation";
+import { ParameterInformation } from "../SemanticAnalyzer/ThingInformation/ParameterInformation";
+import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
+import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
+import { ThingInformation } from "../SemanticAnalyzer/ThingInformation/ThingInformation";
+import { MemberInformation } from "../SemanticAnalyzer/ThingInformation/MemberInformation";
+import { MethodInformation } from "../SemanticAnalyzer/ThingInformation/MethodInformation";
 
-export class Parameter extends SyntacticElement {
+export class Parameter extends SyntacticElement implements ICreatesIlThing<IL.Parameter>, IGeneratesSemanticInformation<ParameterInformation> {
     type: Type;
     name: Identifier;
     defaultValue: Zingle;
+
+    semanticInformation: ParameterInformation;
 
     static read(self: Parameter, builder: ElementBuilder) {
         self.type = builder.readElement(Type);
@@ -21,5 +32,19 @@ export class Parameter extends SyntacticElement {
         }
 
         return builder.finish();
+    }
+
+    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: MethodInformation) {
+        parent.parameters.push(create(new ParameterInformation(), obj => {
+            obj.type = this.type.getTypeReference(path);
+            obj.name = this.name.value;
+        }));
+    }
+
+    createIlThing(index: number) {
+        return create(new IL.Parameter(), obj => {
+            obj.type = this.type.toString();
+            obj.name = this.name.value;
+        })
     }
 }

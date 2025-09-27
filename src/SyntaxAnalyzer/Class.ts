@@ -12,17 +12,33 @@ import { Member } from "./Member";
 import { ModifierList } from "./ModifierList";
 import { IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
 import { IHasId } from "../SemanticAnalyzer/IHasId";
+import { ICreatesIlThing } from "../IntermediateCodeGenerator/ICreatesIlThing";
+import { IL } from "../IL/IL";
+import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSemanticInformation";
+import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
+import { ElementMatcher } from "./ElementMatcher";
+import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
+import { TypeParameterInformation } from "../SemanticAnalyzer/ThingInformation/TypeParameterInformation";
 
-export class Class extends SyntacticElement implements IHasScope, IHasId {
+export class Class extends SyntacticElement implements IHasScope, IHasId, ICreatesIlThing<IL.Class>, IGeneratesSemanticInformation<ClassInformation> {
     modifiers: ModifierList;
     name: Identifier;
-    generic: Generic;
+    typeParameters: Identifier[] = [];
     extends: Type[] = [];
-    body: Member[] = [];
+    body: (Member | Class)[] = [];
 
     identifiers: IdentifierMap = {};
 
     id: string;
+
+    semanticInformation: ClassInformation;
+
+    static match(matcher: ElementMatcher): boolean {
+        matcher.matchElementOptional(ModifierList, false);
+        matcher.matchValue("class");
+
+        return matcher.finish();
+    }
 
     static read(self: Class, builder: ElementBuilder) {
         //modifiers
@@ -36,9 +52,16 @@ export class Class extends SyntacticElement implements IHasScope, IHasId {
         //class name
         self.name = builder.readElement(Identifier);
 
-        //generics
-        if(builder.matchElement(Generic)) {
-            self.generic = builder.readElement(Generic);
+        if(builder.advancePastValue("<")) {
+            while(builder.going) {
+                yourtakingtoolong();
+
+                self.typeParameters.push(builder.readElement(Identifier));
+
+                if(!builder.advancePastValue(",")) break;
+            }
+
+            builder.advancePastExpectedValue(">");
         }
 
         //inheritance
@@ -49,14 +72,18 @@ export class Class extends SyntacticElement implements IHasScope, IHasId {
                 if(!builder.advancePastValue(",")) break;
             }
         }
-        
-        builder.advancePastExpectedValue("{")
+
+        builder.advancePastExpectedValue("{");
 
         //body
         while(builder.going) {
             yourtakingtoolong();
 
             if(builder.advancePastValue("}")) break;
+
+            if(builder.matchElement(Class)) {
+                self.body.push(builder.readElement(Class));
+            }
 
             self.body.push(builder.readElement(Member));
 
@@ -95,5 +122,53 @@ export class Class extends SyntacticElement implements IHasScope, IHasId {
                 }
             }
         }
+    }
+
+    generateSemanticOutline(parent: NamespaceInformation | ClassInformation) {
+        parent.classes[this.name.value] = create(new ClassInformation(), obj => {
+            obj.name = this.name.value;
+            
+            for(let member of this.body) {
+                if(member instanceof Class) {
+                    member.generateSemanticOutline(obj);
+                }
+            }
+
+            this.semanticInformation = obj;
+        })
+    }
+
+    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[]) {
+        this.semanticInformation.typeParameters = this.typeParameters.map(parameter => create(new TypeParameterInformation(), obj => {
+            obj.name = parameter.value;
+        }));
+        
+        this.semanticInformation.extends = this.extends.map(type => type.getTypeReference([...path, this.semanticInformation]));
+        
+        for(let member of this.body) {
+            member.generateSemanticInformation([...path, this.semanticInformation], this.semanticInformation);
+        }
+    }
+
+    createIlThing() {
+        return create(new IL.Class(), obj => {
+            obj.fullName = this.id;
+            obj.name = this.name.value;
+            obj.attributes = [];
+            
+            let fieldOffset = 0;
+
+            for(let member of this.body) {
+                if(member instanceof Field) {
+                    obj.fields.push(member.createIlThing(fieldOffset));
+
+                    fieldOffset += 4;
+                }
+
+                if(member instanceof Method) {
+                    obj.methods.push(member.createIlThing());
+                }
+            }
+        })
     }
 }

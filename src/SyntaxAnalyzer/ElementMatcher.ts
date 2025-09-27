@@ -19,10 +19,10 @@ export class ElementMatcher {
         this.lazy = lazy;
     }
     
-    matchElementOptional<T extends SyntacticElement>(elementType: new () => T) {
+    matchElementOptional<T extends SyntacticElement>(elementType: new () => T, lazy: boolean = true) {
         if(this.skip) return;
 
-        let newMatcher = new ElementMatcher(this.tokens, this.i, true);
+        let newMatcher = new ElementMatcher(this.tokens, this.i, lazy);
 
         if((elementType as any as typeof SyntacticElement).match(newMatcher)) {
             this.i = newMatcher.i;

@@ -4,11 +4,17 @@ import { ModifierList } from "./ModifierList";
 import { SyntacticElement } from "./SyntacticElement";
 import { Identifier } from "./TokenContainers/Identifier";
 import { Type } from "./Type";
+import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
+import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
+import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSemanticInformation";
+import { MemberInformation } from "../SemanticAnalyzer/ThingInformation/MemberInformation";
 
-export class Member extends SyntacticElement {
+export class Member extends SyntacticElement implements IGeneratesSemanticInformation<MemberInformation> {
     modifiers: ModifierList;
     type: Type;
     name: Identifier;
+
+    semanticInformation: MemberInformation;
     
     static read(self: Member, builder: ElementBuilder) {
         if(builder.matchElement(ModifierList)) {
@@ -24,6 +30,8 @@ export class Member extends SyntacticElement {
             return builder.continueReadingAs(Field);
         }
     }
+
+    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: ClassInformation) {}
 }
 
 //avoid circular dependency
