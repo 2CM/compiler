@@ -15,17 +15,21 @@ import { create } from "./Utils/Utils";
 // `);
 // var tokenized = Token.stringToTokens(`zingle <bujh<a,b,c>, zim> (2);`);
 var tokenized = Token.stringToTokens(`
-namespace A.C.D {
+namespace A;
+
+namespace C {
+    namespace D;
+
     public class Class1<T, U> {}
 }
 
-namespace A.C {
+namespace C {
     namespace D {
         public class Class3 {}
     }
     
     public class Class4<T, U> extends A.C.D.Class1<T, D.Class3> {
-        U zingle(Class4 a, A.C.D.Class1 b) {}
+        D.Class1<U, D.Class3> zingle(Class4 a, A.C.D.Class1 b) {}
     }
 }
 `);

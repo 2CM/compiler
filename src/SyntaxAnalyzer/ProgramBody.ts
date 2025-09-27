@@ -29,11 +29,15 @@ export class ProgramBody extends SyntacticElement implements IGeneratesSemanticI
     }
 
     generateSemanticOutline(parent: NamespaceInformation) {
+        this.semanticInformation = parent;
+
         for(let item of this.body) {
             item.generateSemanticOutline(parent);
+
+            if(item instanceof Namespace && !item.body) {
+                parent = item.semanticInformation;
+            }
         }
-        
-        this.semanticInformation = parent;
     }
 
     generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[]) {
