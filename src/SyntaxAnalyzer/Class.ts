@@ -109,22 +109,12 @@ export class Class extends SyntacticElement implements IHasScope, IHasId, ICreat
 
     registerIdentifiers(parent: ProgramBody) {
         this.scope = new Scope(this.semanticInformation, parent.scope);
+        
+        this.semanticInformation.addMembersToScope(this.scope);
 
         for(let member of this.body) {
-            if(member instanceof Field || member instanceof Method) {
-                // member.createId(this.id);
-
-                this.scope.identifiers[member.name.value] = new IdentifierInformation(
-                    member instanceof Field ?
-                        IdentifierReferenceType.Field :
-                        IdentifierReferenceType.Method,
-                    member.name.value,
-                    member.semanticInformation.type
-                )
-
-                if(member instanceof Method) {
-                    member.registerIdentifiers(this);
-                }
+            if(member instanceof Method) {
+                member.registerIdentifiers(this);
             }
         }
     }

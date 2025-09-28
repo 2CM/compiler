@@ -4,6 +4,8 @@ import { ThingInformation } from "./ThingInformation";
 import { TypeReference } from "../TypeReference";
 import { TypeParameterInformation } from "./TypeParameterInformation";
 import { MemberInformation } from "./MemberInformation";
+import { Scope } from "../Scope";
+import { IdentifierReferenceType } from "../IHasScope";
 
 export class ClassInformation extends ThingInformation {
     typeParameters: TypeParameterInformation[] = [];
@@ -24,5 +26,17 @@ export class ClassInformation extends ThingInformation {
         }
 
         return null;
+    }
+
+    addMembersToScope(scope: Scope) {
+        for(let fieldName in this.fields) {
+            this.fields[fieldName].addToScope(scope, this);
+        }
+
+        for(let methodName in this.methods) {
+            this.methods[methodName].addToScope(scope, this);
+        }
+
+        this.extends[0]?.class?.addMembersToScope(scope);
     }
 }

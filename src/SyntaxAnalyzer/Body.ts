@@ -45,11 +45,11 @@ export class Body extends SyntacticElement implements IHasScope, ICreatesIlThing
             let lineBody = line.body;
 
             if(lineBody instanceof LocalDeclaration) {
-                this.scope.identifiers[lineBody.name.value] = new IdentifierInformation(
-                    IdentifierReferenceType.Local,
-                    lineBody.name.value,
-                    lineBody.type.getTypeReference(parent.semanticInformation)
-                )
+                this.scope.identifiers[lineBody.name.value] = create(new IdentifierInformation(), obj => {
+                    obj.referenceType = IdentifierReferenceType.Local;
+                    obj.name = lineBody.name.value;
+                    obj.type = lineBody.type.getTypeReference(parent.semanticInformation);
+                });
             }
 
             if(lineBody instanceof Expression) {

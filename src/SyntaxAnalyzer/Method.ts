@@ -70,11 +70,11 @@ export class Method extends Member implements IHasScope, IHasId, ICreatesIlThing
         // let counter = this.modifiers?.body.find(keyword => keyword.value == "static") ? 0 : 1;
 
         for(let parameter of this.parameters) {
-            this.scope.identifiers[parameter.name.value] = new IdentifierInformation(
-                IdentifierReferenceType.Argument,
-                parameter.name.value,
-                parameter.semanticInformation.type
-            );
+            this.scope.identifiers[parameter.name.value] = create(new IdentifierInformation(), obj => {
+                obj.referenceType = IdentifierReferenceType.Argument;
+                obj.name = parameter.name.value;
+                obj.type = parameter.semanticInformation.type;
+            });
         }
 
         this.body.registerIdentifiers(this);

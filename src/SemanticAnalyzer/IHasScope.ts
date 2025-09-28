@@ -1,6 +1,7 @@
 import { SyntacticElement } from "../SyntaxAnalyzer/SyntacticElement";
 import { enumValue } from "../Utils/Utils";
 import { Scope } from "./Scope";
+import { ClassInformation } from "./ThingInformation/ClassInformation";
 import { TypeReference } from "./TypeReference";
 
 export enum IdentifierReferenceType {
@@ -19,13 +20,8 @@ export class IdentifierInformation {
     @enumValue(IdentifierInformation, IdentifierReferenceType)
     referenceType: IdentifierReferenceType;
     name: string;
-    typeReference: TypeReference;
-
-    constructor(referenceType: IdentifierReferenceType, name: string, typeReference: TypeReference) {
-        this.referenceType = referenceType;
-        this.name = name;
-        this.typeReference = typeReference;
-    }
+    type: TypeReference;
+    parentClass: ClassInformation;
 }
 
 export interface IHasScope {

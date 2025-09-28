@@ -10,7 +10,7 @@ export class Identifier extends TokenContainer<string> implements IEmitsIl, IHas
     typeReference: TypeReference;
 
     determineTypeReference(scope: Scope) {
-        this.typeReference = scope.getIdentifierInformation(this.value).typeReference;
+        this.typeReference = scope.getIdentifierInformation(this.value).type;
     }
 
     emitIl(emitter: IlEmitter) {
