@@ -8,28 +8,22 @@ import { TypeReference } from "../../SemanticAnalyzer/TypeReference";
 import { Token } from "../../Tokenizer/Token";
 import { colorWithType, create } from "../../Utils/Utils";
 import { TokenContainer } from "../TokenContainer";
+import { Type } from "../Type";
 
 export class Literal extends TokenContainer<string | number | boolean> implements IEmitsIl, IHasType {
     typeReference: TypeReference;
 
     determineTypeReference(scope: Scope) {
-        while(scope.parent) {
-            scope = scope.parent;
-        }
-
-        let typeName = (
-            typeof(this.value) == "number" ? "Int32" :
-            typeof(this.value) == "string" ? "String" :
-            typeof(this.value) == "boolean" ? "Boolean" :
+        let typeKeyword = (
+            typeof(this.value) == "number" ? "int" :
+            typeof(this.value) == "string" ? "string" :
+            typeof(this.value) == "boolean" ? "boolean" :
             null
         );
 
-        if(typeName == null) throw new Error("couldnt determine literal type");
+        if(typeKeyword == null) throw new Error("couldnt determine literal type");
 
-        this.typeReference = new TypeReference();
-        this.typeReference.class = (scope.semanticInformation as NamespaceInformation).classes[typeName];
-
-        console.log(this.typeReference)
+        this.typeReference = Type.keywordToSystemType[typeKeyword];
     }
 
     static transformValue(value: string) {

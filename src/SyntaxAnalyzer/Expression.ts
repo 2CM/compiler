@@ -13,6 +13,7 @@ import { IEmitsIl, IlEmitter } from "../IntermediateCodeGenerator/IlEmitter";
 import { TypeReference } from "../SemanticAnalyzer/TypeReference";
 import { IHasType } from "../SemanticAnalyzer/IHasType";
 import { Scope } from "../SemanticAnalyzer/Scope";
+import { Keyword } from "./TokenContainers/Keyword";
 
 type Component = Zingle | Operator;
 
@@ -125,6 +126,10 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
             yourtakingtoolong();
 
             switch(builder.current.type) { 
+                case TokenType.Keyword:
+                    components.push(builder.readElement(Keyword));
+
+                    break;
                 case TokenType.Identifier:
                     components.push(builder.readElement(Identifier));
 
@@ -182,12 +187,18 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
     determineTypeReference(scope: Scope) {
         if(this.left instanceof Generic || this.left instanceof ExpressionList) return;
 
+        console.log(this.left);
+
         this.left.determineTypeReference(scope);
+
+        let leftType = this.left.typeReference;
+
+        if(!leftType) throw new Error("couldnt determine type of the left")
 
         switch(this.operation.value) {
             case Operation.Access:
                 if(this.right instanceof Identifier) {
-                    let accessedMember = this.left.typeReference.class.getMember(this.right?.value);
+                    let accessedMember = leftType.class.getMember(this.right?.value);
 
                     if(!accessedMember) throw new Error("couldnt access member");
 
@@ -202,29 +213,29 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
                     if(!TypeReference.compare(this.left.typeReference, this.right?.typeReference))
                         throw new Error("left and right side dont match types");
 
-                    this.typeReference = this.left.typeReference;
+                    this.typeReference = leftType;
                 }
         }
     }
 
     emitIl(emitter: IlEmitter) {
-        if(this.left instanceof Generic) throw new Error("weird generic position 2 electric boogaloo left side");
-        if(this.right instanceof Generic) throw new Error("weird generic position 2 electric boogaloo right side");
+        // if(this.left instanceof Generic) throw new Error("weird generic position 2 electric boogaloo left side");
+        // if(this.right instanceof Generic) throw new Error("weird generic position 2 electric boogaloo right side");
 
-        switch(this.operation.value) {
-            case Operation.Declare:
-                this.right?.emitIl(emitter);
-            case Operation.Access:
-                //rightType = emitter.blahblahblah
+        // switch(this.operation.value) {
+        //     case Operation.Declare:
+        //         this.right?.emitIl(emitter);
+        //     case Operation.Access:
+        //         //rightType = emitter.blahblahblah
                 
-            case Operation.Index:
-            case Operation.Call:
-            case Operation.Assign:
-        }
+        //     case Operation.Index:
+        //     case Operation.Call:
+        //     case Operation.Assign:
+        // }
 
-        this.left.emitIl(emitter);
-        this.right?.emitIl(emitter);
-        this.operation.emitIl(emitter);
+        // this.left.emitIl(emitter);
+        // this.right?.emitIl(emitter);
+        // this.operation.emitIl(emitter);
     }
 }
 

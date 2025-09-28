@@ -6,6 +6,7 @@ import { TypeParameterInformation } from "./TypeParameterInformation";
 import { MemberInformation } from "./MemberInformation";
 import { Scope } from "../Scope";
 import { IdentifierReferenceType } from "../IHasScope";
+import { create } from "../../Utils/Utils";
 
 export class ClassInformation extends ThingInformation {
     typeParameters: TypeParameterInformation[] = [];
@@ -38,5 +39,11 @@ export class ClassInformation extends ThingInformation {
         }
 
         this.extends[0]?.class?.addMembersToScope(scope);
+    }
+
+    createTypeReference() {
+        return create(new TypeReference(), obj => {
+            obj.class = this;
+        })
     }
 }

@@ -18,6 +18,14 @@ export class ElementMatcher {
         this.i = i;
         this.lazy = lazy;
     }
+
+    checkType(type: TokenType) {
+        return this.tokens[this.i].type == type;
+    }
+
+    checkValue(value: any) {
+        return this.tokens[this.i].value == value;
+    }
     
     matchElementOptional<T extends SyntacticElement>(elementType: new () => T, lazy: boolean = true) {
         if(this.skip) return;
@@ -65,24 +73,24 @@ export class ElementMatcher {
         return false;
     }
 
-    matchTypeOptional(type: TokenType) {
+    matchTypeOptional(...types: TokenType[]) {
         if(this.skip) return;
 
-        this.tokens[this.i];
+        for(let type of types) {
+            if(this.tokens[this.i].type == type) {
+                this.i++;
 
-        if(this.tokens[this.i].type == type) {
-            this.i++;
-
-            return true;
+                return true;
+            }
         }
 
         return false;
     }
 
-    matchType(type: TokenType) {
+    matchType(...types: TokenType[]) {
         if(this.skip) return;
 
-        if(this.matchTypeOptional(type)) return true;
+        if(this.matchTypeOptional(...types)) return true;
 
         this.result = false;
         return false;

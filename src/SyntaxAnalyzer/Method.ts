@@ -44,7 +44,7 @@ export class Method extends Member implements IHasScope, IHasId, ICreatesIlThing
         while(builder.going) {
             yourtakingtoolong();
             
-            if(builder.checkType(TokenType.Identifier)) {
+            if(builder.matchElement(Type)) {
                 self.parameters.push(builder.readElement(Parameter));
 
                 if(builder.advancePastValue(",")) continue;
