@@ -195,11 +195,12 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
                 }
 
                 break;
-            default:                
+            default:
                 if(!(this.right instanceof Generic || this.right instanceof ExpressionList)) {
                     this.right?.determineTypeReference(scope);
 
-                    if(this.left.typeReference != this.right?.typeReference) throw new Error("left and right side dont match types");
+                    if(!TypeReference.compare(this.left.typeReference, this.right?.typeReference))
+                        throw new Error("left and right side dont match types");
 
                     this.typeReference = this.left.typeReference;
                 }

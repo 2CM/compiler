@@ -58,7 +58,7 @@ export function colorWithType(str: any) {
 let enumValues: Record<string, Record<string, any>> = {};
 let ignoreInLoggings: Set<string> = new Set<string>();
 
-export function formatAndColorWithType(value: any, parentObj?: any, key?: any, objCallback?: () => void) {
+export function formatAndColorWithType(value: any, parentObj?: any, key?: any) {
     let type = typeof(value ?? undefined);
     let str = "";
 

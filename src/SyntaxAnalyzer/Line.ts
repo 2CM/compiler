@@ -10,6 +10,7 @@ import { SyntacticElement } from "./SyntacticElement";
 import { ContinueStatement } from "./LineContent/ContinueStatement";
 import { ForStatement } from "./LineContent/ForStatement";
 import { ElementBuilder } from "./ElementBuilder";
+import { LocalDeclaration } from "./LineContent/LocalDeclaration";
 
 const lineContentClasses: typeof SyntacticElement[] = [
     ReturnStatement,
@@ -18,6 +19,7 @@ const lineContentClasses: typeof SyntacticElement[] = [
     SwitchStatement,
     IfStatement,
     ForStatement,
+    LocalDeclaration,
 ]
 
 export class Line extends SyntacticElement {

@@ -33,6 +33,15 @@ export class ElementMatcher {
         return false;
     }
 
+    matchElement<T extends SyntacticElement>(elementType: new () => T, lazy: boolean = true) {
+        if(this.skip) return;
+
+        if(this.matchElement(elementType)) return true;
+        
+        this.result = false;
+        return false;
+    }
+
     matchValueOptional(...values: string[]) {
         if(this.skip) return;
 

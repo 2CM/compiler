@@ -50,7 +50,7 @@ public class Dog : Animal {
     public Int32 Teeth; //i need to find a better way of testing this
 
     public Int32 DoSomething(Int32 bingleBuh, Animal enemy) {
-        bingleBuh + bingleBuh;
+        Teeth + 1;
     }
 }
 `);

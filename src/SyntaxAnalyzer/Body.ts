@@ -8,6 +8,7 @@ import { create, yourtakingtoolong } from "../Utils/Utils";
 import { ElementBuilder } from "./ElementBuilder";
 import { Expression } from "./Expression";
 import { Line } from "./Line";
+import { LocalDeclaration } from "./LineContent/LocalDeclaration";
 import { Method } from "./Method";
 import { Operation } from "./Operation";
 import { SyntacticElement } from "./SyntacticElement";
@@ -42,6 +43,14 @@ export class Body extends SyntacticElement implements IHasScope, ICreatesIlThing
 
         for(let line of this.body) {
             let lineBody = line.body;
+
+            if(lineBody instanceof LocalDeclaration) {
+                this.scope.identifiers[lineBody.name.value] = new IdentifierInformation(
+                    IdentifierReferenceType.Local,
+                    lineBody.name.value,
+                    lineBody.type.getTypeReference(parent.semanticInformation)
+                )
+            }
 
             if(lineBody instanceof Expression) {
                 lineBody.determineTypeReference(this.scope);

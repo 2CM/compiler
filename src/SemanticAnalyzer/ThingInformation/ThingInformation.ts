@@ -1,4 +1,7 @@
+import { ignoreInLogging } from "../../Utils/Utils";
+
 export class ThingInformation {
+    @ignoreInLogging()
     parent?: ThingInformation;
     name?: string;
 
