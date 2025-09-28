@@ -5,7 +5,7 @@ import { Generic } from "./Generic";
 import { ElementBuilder } from "./ElementBuilder";
 import { SyntacticElement } from "./SyntacticElement";
 import { TokenType } from "../Tokenizer/Token";
-import { IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { IdentifierInformation, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
 import { ModifierList } from "./ModifierList";
 import { Type } from "./Type";
 import { Identifier } from "./TokenContainers/Identifier";
@@ -18,13 +18,15 @@ import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSem
 import { MethodInformation } from "../SemanticAnalyzer/ThingInformation/MethodInformation";
 import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
 import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
+import { Scope } from "../SemanticAnalyzer/Scope";
+import { Class } from "./Class";
 
 export class Method extends Member implements IHasScope, IHasId, ICreatesIlThing<IL.Method>, IGeneratesSemanticInformation<MethodInformation> {
     generic: Generic;
     parameters: Parameter[];
     body: Body;
 
-    identifiers: IdentifierMap = {};
+    scope: Scope;
 
     id: string;
 
@@ -59,39 +61,38 @@ export class Method extends Member implements IHasScope, IHasId, ICreatesIlThing
     }
 
     createId(parentId: string) {
-        this.id = `${this.type.toString()} ${parentId}::${this.name.value}${this.generic.toString()}(${this.parameters.map(parameter => parameter.type.name.value).join(", ")})`
+        // this.id = `${this.type.toString()} ${parentId}::${this.name.value}${this.generic.toString()}(${this.parameters.map(parameter => parameter.type.name.value).join(", ")})`
     }
 
-    registerIdentifiers() {
-        this.identifiers = {};
+    registerIdentifiers(parent: Class) {
+        this.scope = new Scope(this.semanticInformation, parent.scope);
 
-        let counter = this.modifiers?.body.find(keyword => keyword.value == "static") ? 0 : 1;
+        // let counter = this.modifiers?.body.find(keyword => keyword.value == "static") ? 0 : 1;
 
         for(let parameter of this.parameters) {
-            this.identifiers[parameter.name.value] = new IdentifierInformation(
+            this.scope.identifiers[parameter.name.value] = new IdentifierInformation(
                 IdentifierReferenceType.Argument,
-                counter++,
-                parameter.type.name.value
+                parameter.name.value,
+                parameter.semanticInformation.type
             );
         }
 
-        this.body.registerIdentifiers(0);
+        this.body.registerIdentifiers(this);
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: ClassInformation) {
-        parent.methods[this.name.value] = create(new MethodInformation(), obj => {
+    generateSemanticInformation(parent: ClassInformation) {
+        parent.methods[this.name.value] = create(new MethodInformation(parent), obj => {
             obj.name = this.name.value;
-            obj.type = this.type.getTypeReference(path);
+            obj.type = this.type.getTypeReference(parent);
             
             for(let parameter of this.parameters) {
-                parameter.generateSemanticInformation(path, obj);
+                parameter.generateSemanticInformation(obj);
             }
 
             this.semanticInformation = obj;
         })
     }
     
-
     createIlThing() {
         return create(new IL.Method(), obj => {
             obj.attributes = this.modifiers.createIlThing();
@@ -101,17 +102,17 @@ export class Method extends Member implements IHasScope, IHasId, ICreatesIlThing
             obj.parameters = this.parameters.map((param, i) => param.createIlThing(i));
             obj.body = this.body.createIlThing();
             
-            for(let identifierKey in this.identifiers) {
-                let identifier = this.identifiers[identifierKey];
+            // for(let identifierKey in this.identifiers) {
+            //     let identifier = this.identifiers[identifierKey];
 
-                if(identifier.referenceType == IdentifierReferenceType.Local) {
-                    obj.locals.push(create(new IL.Local(), obj => {
-                        obj.type = identifier.typeId ?? "what";
-                        obj.name = identifierKey;
-                        obj.index = identifier.id as number;
-                    }))
-                }
-            }
+            //     if(identifier.referenceType == IdentifierReferenceType.Local) {
+            //         obj.locals.push(create(new IL.Local(), obj => {
+            //             obj.type = identifier.typeId ?? "what";
+            //             obj.name = identifierKey;
+            //             obj.index = identifier.id as number;
+            //         }))
+            //     }
+            // }
         })
     }    
 }

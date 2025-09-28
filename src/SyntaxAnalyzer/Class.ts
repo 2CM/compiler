@@ -10,7 +10,7 @@ import { Type } from "./Type";
 import { ElementBuilder } from "./ElementBuilder";
 import { Member } from "./Member";
 import { ModifierList } from "./ModifierList";
-import { IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { IdentifierInformation, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
 import { IHasId } from "../SemanticAnalyzer/IHasId";
 import { ICreatesIlThing } from "../IntermediateCodeGenerator/ICreatesIlThing";
 import { IL } from "../IL/IL";
@@ -19,6 +19,9 @@ import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInfo
 import { ElementMatcher } from "./ElementMatcher";
 import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
 import { TypeParameterInformation } from "../SemanticAnalyzer/ThingInformation/TypeParameterInformation";
+import { Scope } from "../SemanticAnalyzer/Scope";
+import { ProgramBody } from "./ProgramBody";
+import { ThingInformation } from "../SemanticAnalyzer/ThingInformation/ThingInformation";
 
 export class Class extends SyntacticElement implements IHasScope, IHasId, ICreatesIlThing<IL.Class>, IGeneratesSemanticInformation<ClassInformation> {
     modifiers: ModifierList;
@@ -27,7 +30,7 @@ export class Class extends SyntacticElement implements IHasScope, IHasId, ICreat
     extends: Type[] = [];
     body: (Member | Class)[] = [];
 
-    identifiers: IdentifierMap = {};
+    scope: Scope;
 
     id: string;
 
@@ -104,28 +107,30 @@ export class Class extends SyntacticElement implements IHasScope, IHasId, ICreat
         this.id = (parentId ? `${parentId}.` : "") + this.name.value;
     }
 
-    registerIdentifiers() {
+    registerIdentifiers(parent: ProgramBody) {
+        this.scope = new Scope(this.semanticInformation, parent.scope);
+
         for(let member of this.body) {
             if(member instanceof Field || member instanceof Method) {
-                member.createId(this.id)
+                // member.createId(this.id);
 
-                this.identifiers[member.name.value] = new IdentifierInformation(
+                this.scope.identifiers[member.name.value] = new IdentifierInformation(
                     member instanceof Field ?
                         IdentifierReferenceType.Field :
                         IdentifierReferenceType.Method,
-                    member.id,
-                    member.type.name.value
+                    member.name.value,
+                    member.semanticInformation.type
                 )
 
                 if(member instanceof Method) {
-                    member.registerIdentifiers();
+                    member.registerIdentifiers(this);
                 }
             }
         }
     }
 
     generateSemanticOutline(parent: NamespaceInformation | ClassInformation) {
-        parent.classes[this.name.value] = create(new ClassInformation(), obj => {
+        parent.classes[this.name.value] = create(new ClassInformation(parent), obj => {
             obj.name = this.name.value;
             
             for(let member of this.body) {
@@ -138,16 +143,20 @@ export class Class extends SyntacticElement implements IHasScope, IHasId, ICreat
         })
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[]) {
-        this.semanticInformation.typeParameters = this.typeParameters.map(parameter => create(new TypeParameterInformation(), obj => {
+    generateSemanticInformation(parent: ThingInformation) {
+        this.semanticInformation.typeParameters = this.typeParameters.map(parameter => create(new TypeParameterInformation(this.semanticInformation), obj => {
             obj.name = parameter.value;
         }));
         
-        this.semanticInformation.extends = this.extends.map(type => type.getTypeReference([...path, this.semanticInformation]));
+        this.semanticInformation.extends = this.extends.map(type => type.getTypeReference(this.semanticInformation));
         
         for(let member of this.body) {
-            member.generateSemanticInformation([...path, this.semanticInformation], this.semanticInformation);
+            member.generateSemanticInformation(this.semanticInformation);
         }
+    }
+
+    annotateWithTypeReferences(scope: any) {
+
     }
 
     createIlThing() {

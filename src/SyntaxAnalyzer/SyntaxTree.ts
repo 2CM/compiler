@@ -1,9 +1,11 @@
 import { IL } from "../IL/IL";
 import { ICreatesIlThing } from "../IntermediateCodeGenerator/ICreatesIlThing";
 import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSemanticInformation";
-import { IdentifierInformation, IdentifierMap, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { IdentifierInformation, IdentifierReferenceType, IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { Scope } from "../SemanticAnalyzer/Scope";
 import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
 import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
+import { ThingInformation } from "../SemanticAnalyzer/ThingInformation/ThingInformation";
 import { Token, TokenType } from "../Tokenizer/Token";
 import { create, enumValue, yourtakingtoolong } from "../Utils/Utils";
 import { Class } from "./Class";
@@ -16,7 +18,7 @@ export class SyntaxTree extends SyntacticElement implements IHasScope, ICreatesI
     usings: UsingStatement[] = [];
     body: ProgramBody;
 
-    identifiers: IdentifierMap = {};
+    scope: Scope;
 
     semanticInformation: NamespaceInformation;
 
@@ -32,33 +34,22 @@ export class SyntaxTree extends SyntacticElement implements IHasScope, ICreatesI
         return builder.finish();
     }
 
-    // registerIdentifiers() {
-    //     for(let item of this.body) {
-    //         item.createId("");
-
-    //         this.identifiers[item.name.value] = new IdentifierInformation(
-    //             IdentifierReferenceType.Type,
-    //             item.id
-    //         )
-    //     }
-
-    //     for(let item of this.body) {
-    //         item.registerIdentifiers();
-    //     }
-    // }
+    registerIdentifiers() {
+        this.body.registerIdentifiers(this);
+    }
 
     generateSemanticOutline(root: NamespaceInformation) {
         this.body.generateSemanticOutline(root);
         this.semanticInformation = root;
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[]) {
-        this.body.generateSemanticInformation(path);
+    generateSemanticInformation(parent: ThingInformation) {
+        this.body.generateSemanticInformation(this.semanticInformation);
     }
 
-    // createIlThing() {
-    //     return create(new IL.Program(), obj => {
-    //         obj.classes = this.body.map(class_ => class_.createIlThing());
-    //     })
-    // }
+    createIlThing() {
+        return create(new IL.Program(), obj => {
+            // obj.classes = this.body.map(class_ => class_.createIlThing());
+        })
+    }
 }

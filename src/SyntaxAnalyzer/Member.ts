@@ -31,7 +31,7 @@ export class Member extends SyntacticElement implements IGeneratesSemanticInform
         }
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: ClassInformation) {}
+    generateSemanticInformation(parent: ClassInformation) {}
 }
 
 //avoid circular dependency

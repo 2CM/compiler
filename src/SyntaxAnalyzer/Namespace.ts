@@ -10,10 +10,15 @@ import { ModifierList } from "./ModifierList";
 import { ProgramBody } from "./ProgramBody";
 import { SyntacticElement } from "./SyntacticElement";
 import { Identifier } from "./TokenContainers/Identifier";
+import { ThingInformation } from "../SemanticAnalyzer/ThingInformation/ThingInformation";
+import { IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { Scope } from "../SemanticAnalyzer/Scope";
 
-export class Namespace extends SyntacticElement implements IGeneratesSemanticInformation<NamespaceInformation> {
+export class Namespace extends SyntacticElement implements IHasScope, IGeneratesSemanticInformation<NamespaceInformation> {
     identifiers: Identifier[] = [];
     body?: ProgramBody;
+
+    scope: Scope;
 
     semanticInformation: NamespaceInformation;
 
@@ -43,14 +48,20 @@ export class Namespace extends SyntacticElement implements IGeneratesSemanticInf
         return builder.finish();
     }
 
-    generateSemanticOutline(tree: NamespaceInformation) {
-        let current = tree;
+    registerIdentifiers(parent: ProgramBody) {
+        this.scope = new Scope(this.semanticInformation, parent.scope);
+
+        this.body?.registerIdentifiers(this);
+    }
+
+    generateSemanticOutline(parent: NamespaceInformation) {
+        let current = parent;
         
         for(let identifier of this.identifiers) {
             if(!current.namespaces[identifier.value]) {
                 current.namespaces[identifier.value] =
-                    create(new NamespaceInformation, obj => {
-                        obj.name = identifier.value
+                    create(new NamespaceInformation(parent), obj => {
+                        obj.name = identifier.value;
                     });
             }
 
@@ -61,7 +72,7 @@ export class Namespace extends SyntacticElement implements IGeneratesSemanticInf
         this.semanticInformation = current;
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[]) {
-        this.body?.generateSemanticInformation(path);
+    generateSemanticInformation(parent: ThingInformation) {
+        this.body?.generateSemanticInformation(parent);
     }
 }

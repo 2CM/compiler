@@ -34,11 +34,13 @@ export class Parameter extends SyntacticElement implements ICreatesIlThing<IL.Pa
         return builder.finish();
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: MethodInformation) {
-        parent.parameters.push(create(new ParameterInformation(), obj => {
-            obj.type = this.type.getTypeReference(path);
+    generateSemanticInformation(parent: MethodInformation) {
+        this.semanticInformation = create(new ParameterInformation(parent), obj => {
+            obj.type = this.type.getTypeReference(parent);
             obj.name = this.name.value;
-        }));
+        });
+
+        parent.parameters.push(this.semanticInformation);
     }
 
     createIlThing(index: number) {

@@ -6,11 +6,17 @@ import { ElementBuilder } from "./ElementBuilder";
 import { Namespace } from "./Namespace";
 import { SyntacticElement } from "./SyntacticElement";
 import { IGeneratesSemanticInformation } from "../SemanticAnalyzer/IGeneratesSemanticInformation";
+import { ThingInformation } from "../SemanticAnalyzer/ThingInformation/ThingInformation";
+import { IHasScope } from "../SemanticAnalyzer/IHasScope";
+import { Scope } from "../SemanticAnalyzer/Scope";
+import { SyntaxTree } from "./SyntaxTree";
 
-export class ProgramBody extends SyntacticElement implements IGeneratesSemanticInformation<NamespaceInformation> {
+export class ProgramBody extends SyntacticElement implements IHasScope, IGeneratesSemanticInformation<NamespaceInformation> {
     body: (Class | Namespace)[] = [];
 
     semanticInformation: NamespaceInformation;
+
+    scope: Scope;
 
     static read(self: ProgramBody, builder: ElementBuilder) {
         while(builder.going) {
@@ -28,6 +34,14 @@ export class ProgramBody extends SyntacticElement implements IGeneratesSemanticI
         return builder.finish();
     }
 
+    registerIdentifiers(parent: Namespace | SyntaxTree) {
+        this.scope = new Scope(this.semanticInformation, parent.scope);
+
+        for(let item of this.body) {
+            item.registerIdentifiers(this);
+        }
+    }
+
     generateSemanticOutline(parent: NamespaceInformation) {
         this.semanticInformation = parent;
 
@@ -40,9 +54,9 @@ export class ProgramBody extends SyntacticElement implements IGeneratesSemanticI
         }
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[]) {
+    generateSemanticInformation(parent: ThingInformation): void {
         for(let item of this.body) {
-            item.generateSemanticInformation([...path, item.semanticInformation]);
+            item.generateSemanticInformation(parent);
         }
     }
 }

@@ -10,13 +10,18 @@ import { Zingle } from "./Zingle";
 import { ElementBuilder } from "./ElementBuilder";
 import { Generic } from "./Generic";
 import { IEmitsIl, IlEmitter } from "../IntermediateCodeGenerator/IlEmitter";
+import { TypeReference } from "../SemanticAnalyzer/TypeReference";
+import { IHasType } from "../SemanticAnalyzer/IHasType";
+import { Scope } from "../SemanticAnalyzer/Scope";
 
 type Component = Zingle | Operator;
 
-export class Expression extends SyntacticElement implements IEmitsIl {
+export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
     left: Zingle;
     right?: Zingle;
     operation: Operator;
+
+    typeReference: TypeReference;
 
     static fromComponents(components: Component[]): Zingle {
         // console.log({components})
@@ -172,6 +177,33 @@ export class Expression extends SyntacticElement implements IEmitsIl {
         }
 
         throw new Error("what");
+    }
+
+    determineTypeReference(scope: Scope) {
+        if(this.left instanceof Generic || this.left instanceof ExpressionList) return;
+
+        this.left.determineTypeReference(scope);
+
+        switch(this.operation.value) {
+            case Operation.Access:
+                if(this.right instanceof Identifier) {
+                    let accessedMember = this.left.typeReference.class.getMember(this.right?.value);
+
+                    if(!accessedMember) throw new Error("couldnt access member");
+
+                    this.typeReference = accessedMember.type;
+                }
+
+                break;
+            default:                
+                if(!(this.right instanceof Generic || this.right instanceof ExpressionList)) {
+                    this.right?.determineTypeReference(scope);
+
+                    if(this.left.typeReference != this.right?.typeReference) throw new Error("left and right side dont match types");
+
+                    this.typeReference = this.left.typeReference;
+                }
+        }
     }
 
     emitIl(emitter: IlEmitter) {

@@ -1,5 +1,6 @@
 import { ClassInformation } from "../SemanticAnalyzer/ThingInformation/ClassInformation";
 import { NamespaceInformation } from "../SemanticAnalyzer/ThingInformation/NamespaceInformation";
+import { ThingInformation } from "../SemanticAnalyzer/ThingInformation/ThingInformation";
 import { TypeParameterInformation } from "../SemanticAnalyzer/ThingInformation/TypeParameterInformation";
 import { TypeReference } from "../SemanticAnalyzer/TypeReference";
 import { Token, TokenType } from "../Tokenizer/Token";
@@ -48,33 +49,38 @@ export class Type extends SyntacticElement {
         return builder.finish();
     }
 
-    getTypeReference(path: (NamespaceInformation | ClassInformation)[]): TypeReference {
-        let current: NamespaceInformation | ClassInformation | null = null;
-        let front = path.at(-1);
-
-        if(front instanceof ClassInformation) {
-            let typeParameterMatch = front.typeParameters.find(parameter => parameter.name == this.identifiers[0].value);
+    getTypeReference(current: ThingInformation): TypeReference {
+        if(current instanceof ClassInformation) {
+            let typeParameterMatch = current.typeParameters.find(parameter => parameter.name == this.identifiers[0].value);
             
             if(typeParameterMatch) return create(new TypeReference(), obj => {
                 obj.typeParameter = typeParameterMatch;
             });
         }
 
-        for(let i = path.length - 1; i >= 0; i --) {
-            let item = path[i];
+        while(true) {
+            yourtakingtoolong();
 
             if(
-                item.classes[this.identifiers[0].value] ||
-                (item instanceof NamespaceInformation && item.namespaces[this.identifiers[0].value])
+                (
+                    (current instanceof ClassInformation || current instanceof NamespaceInformation) &&
+                    current.classes[this.identifiers[0].value]
+                ) ||
+                (
+                    current instanceof NamespaceInformation &&
+                    current.namespaces[this.identifiers[0].value]
+                )
             ) {
-                current = item;
-
                 break;
             }
+
+            if(!current.parent) break;
+
+            current = current.parent;
         }
 
         for(let identifer of this.identifiers) {
-            if(current?.classes[identifer.value]) {
+            if((current instanceof ClassInformation || current instanceof NamespaceInformation) && current?.classes[identifer.value]) {
                 current = current.classes[identifer.value];
             } else if(current instanceof NamespaceInformation && current?.namespaces[identifer.value]) {
                 current = current.namespaces[identifer.value];
@@ -91,7 +97,7 @@ export class Type extends SyntacticElement {
             if(this.generic) {
                 if(this.generic.types.length != obj.class.typeParameters.length) throw new Error("incorrect amount of type arguments")
 
-                obj.generic = this.generic.types.map(type => type.getTypeReference(path));
+                obj.generic = this.generic.types.map(type => type.getTypeReference(current));
             }
         })
     }

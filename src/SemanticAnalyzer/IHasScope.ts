@@ -1,4 +1,7 @@
+import { SyntacticElement } from "../SyntaxAnalyzer/SyntacticElement";
 import { enumValue } from "../Utils/Utils";
+import { Scope } from "./Scope";
+import { TypeReference } from "./TypeReference";
 
 export enum IdentifierReferenceType {
     Local,
@@ -15,21 +18,19 @@ export enum IdentifierReferenceType {
 export class IdentifierInformation {
     @enumValue(IdentifierInformation, IdentifierReferenceType)
     referenceType: IdentifierReferenceType;
-    id: string | number;
-    typeId?: string;
+    name: string;
+    typeReference: TypeReference;
 
-    constructor(referenceType: IdentifierReferenceType, id: string | number, typeId?: string) {
+    constructor(referenceType: IdentifierReferenceType, name: string, typeReference: TypeReference) {
         this.referenceType = referenceType;
-        this.id = id;
-        this.typeId = typeId;
+        this.name = name;
+        this.typeReference = typeReference;
     }
 }
 
-export type IdentifierMap = Record<string, IdentifierInformation>
-
 export interface IHasScope {
-    identifiers: IdentifierMap
-    registerIdentifiers(...data: any[]): number | void;
+    scope: Scope;
+    registerIdentifiers(parent: SyntacticElement): number | void;
 }
 
 export function hasScope(obj: any): obj is IHasScope {

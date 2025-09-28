@@ -45,10 +45,10 @@ export class Field extends Member implements IHasId, ICreatesIlThing<IL.Field>, 
         })
     }
 
-    generateSemanticInformation(path: (NamespaceInformation | ClassInformation)[], parent: ClassInformation) {
-        parent.fields[this.name.value] = create(new FieldInformation(), obj => {
+    generateSemanticInformation(parent: ClassInformation) {
+        parent.fields[this.name.value] = create(new FieldInformation(parent), obj => {
             obj.name = this.name.value;
-            obj.type = this.type.getTypeReference(path);
+            obj.type = this.type.getTypeReference(parent);
 
             this.semanticInformation = obj;
         })
