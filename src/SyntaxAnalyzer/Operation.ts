@@ -62,9 +62,7 @@ export namespace Operation {
             Operation.Index,
             Operation.Generic,
             Operation.Declare,
-        ],
-        [
-            Operation.New
+            Operation.New,
         ],
         [
             Operation.PostfixIncrement,

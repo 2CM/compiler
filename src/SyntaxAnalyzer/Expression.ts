@@ -25,7 +25,7 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
     typeReference: TypeReference;
 
     static fromComponents(components: Component[]): Zingle {
-        // console.log({components})
+        console.log({components})
 
         for(let i = 0; i < Operation.operationLevels.length; i++) {
             let operationLevel = Operation.operationLevels[i];
@@ -200,14 +200,21 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
                 if(this.right instanceof Identifier) {
                     let accessedMember = leftType.class.getMember(this.right?.value);
 
-                    if(!accessedMember) throw new Error("couldnt access member");
+                    if(!accessedMember) throw new Error(`couldnt access member "${this.right?.value}"`);
 
                     this.typeReference = accessedMember.type;
                 }
 
                 break;
+            case Operation.Call:
+                if(this.right instanceof Generic) throw new Error("cant call a generic");
+
+                this.right?.determineTypeReference(scope);
+
+                this.typeReference = leftType;
+            break;
             default:
-                if(!(this.right instanceof Generic || this.right instanceof ExpressionList)) {
+                if(!(this.right instanceof Generic)) {
                     this.right?.determineTypeReference(scope);
 
                     if(!TypeReference.compare(this.left.typeReference, this.right?.typeReference))
@@ -245,4 +252,62 @@ bingle.zingle[0] = hello(Int32 buh = 5, bongle.b);
 left
 right
 index
+*/
+
+/*
+type Zingle = Expression | Identifier | Literal
+
+ArgumentList
+- arguments: Zingle[]
+
+BinaryExpression : Expression
+- left: Zingle
+- right: Zingle
+- operator: Operator
+
+UnaryExpression : Expression
+- value: Zingle
+- operator: Operator
+
+ObjectCreationExpression : Expression
+- type?: Type
+- arguments: ArgumentList
+
+InvocationExpression : Expression
+- left: Zingle
+- arguments: ArgumentList
+
+ConditionalExpression : Expression
+- condition: Zingle
+- trueCase: Zingle
+- falseCase: Zingle
+
+parseComponents(components: (Zingle | Operator)[]) {
+    in order of operations {
+        for i in components {
+            [zingle], ?, [zingle], :, [zingle] {
+                conditionalExpression = ...
+
+                components.splice(i, 5, conditionalExpression)
+            }
+
+            [operator], * {
+                unaryExpression = ...
+
+                components.splice(i, 2, unaryExpression)
+            }
+
+            [zingle], [argumentlist] {
+                
+            }
+
+            [zingle], [operator], [zingle] {
+                binaryExpression = ...
+
+                components.splice(i, 3, binaryExpression)
+            }
+        }
+    }
+}
+
 */

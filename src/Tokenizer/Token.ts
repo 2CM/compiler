@@ -63,8 +63,8 @@ export class Token {
                 /(?<whitespace>[\n\s]+|\/\*(.+)?\*\/|\/\/(.+)?)/,
                 `(?<keyword>${keywordMatch})`,
                 /(?<literal>(-?\d+(\.\d+)?|("[^"]+")|true|false))/,
-                /(?<identifier>[A-Z|a-z]([A-Z|a-z|0-9]+)?)/,
                 `(?<operator>${operatorMatch})`,
+                /(?<identifier>[A-Z|a-z]([A-Z|a-z|0-9]+)?)/,
                 /(?<separator>[()[\]{};:\<|\>])/,
             ].map(regex => regex instanceof RegExp ? regex.source : regex).join("|"),
             "y"

@@ -44,6 +44,7 @@ namespace System {
 public class Animal {
     public int Age;
     public int SomeOtherThing;
+    public Animal Mother;
 
     public int Buh(int zuh) {
 
@@ -54,9 +55,9 @@ public class Dog : Animal {
     public int Teeth; //i need to find a better way of testing this
 
     public int DoSomething(int bingleBuh, Animal enemy) {
-        int z = enemy.SomeOtherThing;
+        Animal z = new Animal.SubClass().Mother;
     
-        bingleBuh + Teeth + Age - 1 + z;
+        // this.Mother.Mother.Buh(this.Mother.Age);
     }
 }
 `);
@@ -72,13 +73,13 @@ let tree = ElementBuilder.readFromTokens(tokenized, 0, SyntaxTree);
 
 let semanticTree = new SemanticTree();
 
-tree.generateSemanticOutline(semanticTree.root);
+//tree.generateSemanticOutline(semanticTree.root);
 
-Type.registerSystemTypes(semanticTree);
-tree.generateSemanticInformation(semanticTree.root);
+//Type.registerSystemTypes(semanticTree);
+//tree.generateSemanticInformation(semanticTree.root);
 
 
-tree.registerIdentifiers();
+// tree.registerIdentifiers();
 
 // console.log(semanticTree);
 console.log(tree);
