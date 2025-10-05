@@ -77,6 +77,12 @@ export enum Operation {
     Join,
 }
 
+export enum OperationUse {
+    Binary,
+    Prefix,
+    Postfix,
+}
+
 export class Operator extends TokenContainer<Operation> implements IEmitsIl {
     static tokenType = TokenType.Operator;
 
@@ -94,6 +100,93 @@ export class Operator extends TokenContainer<Operation> implements IEmitsIl {
     emitIl(emitter: IlEmitter) {
         
     }
+
+    static operationGroups: Partial<Record<Operation, OperationUse>>[] = [
+        {
+            [Operation.Access]: OperationUse.Binary,
+            [Operation.Optional]: OperationUse.Postfix,
+            [Operation.Invoke]: OperationUse.Binary,
+            [Operation.Index]: OperationUse.Binary,
+            [Operation.PostfixIncrement]: OperationUse.Postfix,
+            [Operation.PostfixDecrement]: OperationUse.Postfix,
+            [Operation.New]: OperationUse.Prefix,
+            [Operation.Typeof]: OperationUse.Prefix,
+            [Operation.Default]: OperationUse.Prefix,
+        },
+        {
+            [Operation.PrefixIncrement]: OperationUse.Prefix,
+            [Operation.PrefixDecrement]: OperationUse.Prefix,
+            [Operation.LogicalNot]: OperationUse.Prefix,
+            [Operation.BitwiseNot]: OperationUse.Prefix,
+            [Operation.UnaryPlus]: OperationUse.Prefix,
+            [Operation.UnaryMinus]: OperationUse.Prefix,
+            [Operation.Cast]: OperationUse.Prefix,
+        },
+        {
+            [Operation.Exponentiate]: OperationUse.Binary,
+            [Operation.Multiply]: OperationUse.Binary,
+            [Operation.Divide]: OperationUse.Binary,
+            [Operation.Remainder]: OperationUse.Binary,
+        },
+        {
+            [Operation.Add]: OperationUse.Binary,
+            [Operation.Subtract]: OperationUse.Binary,
+        },
+        {
+            [Operation.ShiftLeft]: OperationUse.Binary,
+            [Operation.ShiftRight]: OperationUse.Binary,
+        },
+        {
+            [Operation.LessThan]: OperationUse.Binary,
+            [Operation.LessThanOrEqual]: OperationUse.Binary,
+            [Operation.GreaterThan]: OperationUse.Binary,
+            [Operation.GreaterThanOrEqual]: OperationUse.Binary,
+            [Operation.Is]: OperationUse.Binary,
+            [Operation.As]: OperationUse.Binary,
+        },
+        {
+            [Operation.Equals]: OperationUse.Binary,
+            [Operation.NotEquals]: OperationUse.Binary,
+        },
+        {
+            [Operation.BitwiseAnd]: OperationUse.Binary,
+            [Operation.BitwiseXor]: OperationUse.Binary,
+            [Operation.BitwiseOr]: OperationUse.Binary,
+        },
+        {
+            [Operation.LogicalAnd]: OperationUse.Binary,
+            [Operation.LogicalXor]: OperationUse.Binary,
+            [Operation.LogicalOr]: OperationUse.Binary,
+        },
+        {
+            [Operation.NullishCoalesce]: OperationUse.Binary,
+            [Operation.Throw]: OperationUse.Prefix,
+        },
+        {
+            [Operation.Conditional]: OperationUse.Binary,
+        },
+        {
+            [Operation.Assign]: OperationUse.Binary,
+            [Operation.AssignExponentiate]: OperationUse.Binary,
+            [Operation.AssignMultiply]: OperationUse.Binary,
+            [Operation.AssignDivide]: OperationUse.Binary,
+            [Operation.AssignRemainder]: OperationUse.Binary,
+            [Operation.AssignAdd]: OperationUse.Binary,
+            [Operation.AssignSubtract]: OperationUse.Binary,
+            [Operation.AssignLeftShift]: OperationUse.Binary,
+            [Operation.AssignRightShift]: OperationUse.Binary,
+            [Operation.AssignBitwiseAnd]: OperationUse.Binary,
+            [Operation.AssignBitwiseXor]: OperationUse.Binary,
+            [Operation.AssignBitwiseOr]: OperationUse.Binary,
+            [Operation.AssignLogicalAnd]: OperationUse.Binary,
+            [Operation.AssignLogicalXor]: OperationUse.Binary,
+            [Operation.AssignLogicalOr]: OperationUse.Binary,
+            [Operation.AssignNullishCoalesce]: OperationUse.Binary,
+        },
+        {
+            [Operation.Join]: OperationUse.Binary,
+        }
+    ]
 
     static operatorStrToOperation = {
         ".": Operation.Access,

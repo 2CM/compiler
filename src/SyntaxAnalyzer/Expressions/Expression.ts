@@ -7,7 +7,7 @@ import { SyntacticElement } from "../SyntacticElement";
 import { Identifier } from "../TokenContainers/Identifier";
 import { Keyword } from "../TokenContainers/Keyword";
 import { Literal } from "../TokenContainers/Literal";
-import { Operation, Operator } from "../TokenContainers/Operator";
+import { Operation, OperationUse, Operator } from "../TokenContainers/Operator";
 import { BinaryExpression } from "./BinaryExpression";
 import { CastExpression } from "./CastExpression";
 import { ElementAccessExpression } from "./ElementAccessExpression";
@@ -45,75 +45,123 @@ export class Expression extends SyntacticElement implements IHasType {
     }
 
     static processComponents(components: (Expression | Operator)[]) {
-        console.log(components)
+        console.log(components);
 
-        for(let i = 0; i < components.length; i++) {
-            let left = components[i];
-            let middle = components[i + 1];
+        function matchUnaryStart(left: Expression | Operator, right: Expression | Operator) {
+            return (
+                left instanceof Operator ||
+                (
+                    left instanceof ParenthesizedExpression &&
+                    left.expression instanceof Identifier &&
+                    !(right instanceof Operator)
+                )
+            )
+        }
 
-            if(!middle) break;
-
-            console.log(left, middle)
-
-            if(left instanceof Operator) continue;
-            
-            //optional expressions
-            if(middle instanceof Operator && middle.value == Operation.Optional) {
-                let optionalExpression = create(new UnaryExpression(), obj => {
-                    obj.operator = middle
-                    obj.operand = left
-
-                    obj.applyMetadata(left, middle)
-                })
-
-                components.splice(i, 2, optionalExpression);
-                
-                i--;
-                continue;
-            }
-            
-            //regular binary expressions (x + y)
-            if(middle instanceof Operator) {
+        for(let group of Operator.operationGroups) {
+            for(let i = 0; i < components.length; i++) {
+                let left = components[i];
+                let middle = components[i + 1];
                 let right = components[i + 2];
 
-                if(right instanceof Operator) throw new Error("evil");
+                console.log("b", left, middle)
 
-                let binaryExpression = create(new BinaryExpression(), obj => {
-                    obj.operator = middle
-                    obj.left = left
-                    obj.right = right
+                if(!middle) break;
+                
+                //prefix unary expressions
+                if(matchUnaryStart(left, middle)) {
+                    let operation = left instanceof Operator ? left.value : Operation.Cast;
 
-                    obj.applyMetadata(left, right)
-                })
+                    if(group[operation] == OperationUse.Prefix) {
+                        if(middle instanceof Operator || matchUnaryStart(middle, right)) continue;
 
-                components.splice(i, 3, binaryExpression);
-                i--;
-            } else { //irregular binary expresssions (thing(somethingelse))
-                if(middle instanceof ParenthesizedExpression) {                    
-                    let expression: Expression | null = null;
-                    
-                    if(middle.openParentheses.value == "(") {
-                        expression = create(new InvocationExpression(), obj => {
-                            obj.target = left
-                            obj.arguments = middle
+                        let expression: Expression | null = null;
 
-                            obj.applyMetadata(left, middle)
-                        })
-                    } else if(middle.openParentheses.value == "[") {
-                        expression = create(new ElementAccessExpression(), obj => {
-                            obj.left = left
-                            obj.right = middle
+                        if(left instanceof Operator) {
+                            expression = create(new UnaryExpression(), obj => {
+                                obj.operator = left
+                                obj.operand = middle
+                                
+                                obj.applyMetadata(left, middle)
+                            })
+                        } else if(left instanceof ParenthesizedExpression) {
+                            expression = create(new CastExpression(), obj => {
+                                obj.left = left
+                                obj.right = middle
 
-                            obj.applyMetadata(left, middle)
-                        })
+                                obj.applyMetadata(left, middle)
+                            })
+                        }
+
+                        if(!expression) throw new Error("p");
+
+                        components.splice(i, 2, expression);
+
+                        i--;
+                        if(matchUnaryStart(components[i], components[i + 1])) i--;
+                        continue;
                     }
+                }
+                
+                if(left instanceof Operator || matchUnaryStart(left, middle)) continue; 
+                if(middle instanceof Operator && group[middle.value] == null) continue;
+                
+                //postfix unary expressions
+                if(middle instanceof Operator && group[middle.value] == OperationUse.Postfix) {
+                    let postfixUnaryExpression = create(new UnaryExpression(), obj => {
+                        obj.operator = middle
+                        obj.operand = left
 
-                    if(!expression) throw new Error("qha");
+                        obj.applyMetadata(left, middle)
+                    })
 
-                    components.splice(i, 2, expression);
+                    components.splice(i, 2, postfixUnaryExpression);
+                    
                     i--;
-                } else {
-                    throw new Error("eijfef")
+                    continue;
+                }
+                
+                //regular binary expressions (x + y)
+                if(middle instanceof Operator && group[middle.value] == OperationUse.Binary) {
+                    if(right instanceof Operator) throw new Error("evil");
+
+                    let binaryExpression = create(new BinaryExpression(), obj => {
+                        obj.operator = middle
+                        obj.left = left
+                        obj.right = right
+
+                        obj.applyMetadata(left, right)
+                    })
+
+                    components.splice(i, 3, binaryExpression);
+                    i--;
+                } else { //irregular binary expresssions (thing(somethingelse))
+                    if(middle instanceof ParenthesizedExpression) {                    
+                        let expression: Expression | null = null;
+                        
+                        if(middle.openParentheses.value == "(" && group[Operation.Invoke] == OperationUse.Binary) {
+                            expression = create(new InvocationExpression(), obj => {
+                                obj.target = left
+                                obj.arguments = middle
+
+                                obj.applyMetadata(left, middle)
+                            })
+                        } else if(middle.openParentheses.value == "[" && group[Operation.Index] == OperationUse.Binary) {
+                            expression = create(new ElementAccessExpression(), obj => {
+                                obj.left = left
+                                obj.right = middle
+
+                                obj.applyMetadata(left, middle)
+                            })
+                        }
+
+                        if(!expression) continue;
+
+                        components.splice(i, 2, expression);
+                        i--;
+                    } else {
+                        throw new Error("eijfef")
+                    }
                 }
             }
         }
@@ -139,7 +187,7 @@ export class Expression extends SyntacticElement implements IHasType {
 
             if(builder.matchValue(")", "]")) break;
                         
-            let value = builder.readElementFromPossibilities([
+            let element = builder.readElementFromPossibilities([
                 Operator,
                 Literal,
                 Identifier,
@@ -147,9 +195,16 @@ export class Expression extends SyntacticElement implements IHasType {
             ]);
 
 
-            if(!value) throw new Error("quog");
+            if(!element) throw new Error("quog");
 
-            components.push(value);
+            if(element instanceof Operator && (components.length == 0 || components.at(-1) instanceof Operator)) {
+                if(element.value == Operation.PostfixIncrement) element.value = Operation.PrefixIncrement;
+                if(element.value == Operation.PostfixDecrement) element.value = Operation.PrefixDecrement;
+                if(element.value == Operation.Add) element.value = Operation.UnaryPlus;
+                if(element.value == Operation.Subtract) element.value = Operation.UnaryMinus;
+            }
+
+            components.push(element);
         }
 
         builder.finish();

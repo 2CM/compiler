@@ -34,7 +34,7 @@ import { create, ignoreInLogging } from "./Utils/Utils";
 // }
 // `);
 
-var tokenized = Token.stringToTokens(`bingle[bong]`);
+var tokenized = Token.stringToTokens(`-+(bong)(bing)bingle + +1`);
 
 
 let tree = ElementBuilder.readFromTokens(tokenized, 0, Expression);
