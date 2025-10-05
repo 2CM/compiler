@@ -8,17 +8,21 @@ import { Identifier } from "../TokenContainers/Identifier";
 import { Keyword } from "../TokenContainers/Keyword";
 import { Literal } from "../TokenContainers/Literal";
 import { Operation, OperationUse, Operator } from "../TokenContainers/Operator";
+import { Separator } from "../TokenContainers/Separator";
 import { BinaryExpression } from "./BinaryExpression";
 import { CastExpression } from "./CastExpression";
+import { ConditionalExpression } from "./ConditionalExpression";
 import { ElementAccessExpression } from "./ElementAccessExpression";
 import { InvocationExpression } from "./InvocationExpression";
 import { ParenthesizedExpression } from "./ParenthesizedExpression";
 import { UnaryExpression } from "./UnaryExpression";
 
+type Component = Expression | Operator | Separator;
+
 export class Expression extends SyntacticElement implements IHasType {
     typeReference: TypeReference;
 
-    static tryResolveUnaryExpression(components: (Expression | Operator)[], i: number): {expression: Expression, size: number} {
+    static tryResolveUnaryExpression(components: (Component)[], i: number): {expression: Expression, size: number} {
         let left = components[i];
         let expression: Expression = components[i] as Expression;
         let size = 1;
@@ -44,10 +48,10 @@ export class Expression extends SyntacticElement implements IHasType {
         return { expression, size };
     }
 
-    static processComponents(components: (Expression | Operator)[]) {
+    static processComponents(components: (Component)[]) {
         console.log(components);
 
-        function matchUnaryStart(left: Expression | Operator, right: Expression | Operator) {
+        function matchUnaryStart(left: Component, right: Component) {
             return (
                 left instanceof Operator ||
                 (
@@ -58,13 +62,24 @@ export class Expression extends SyntacticElement implements IHasType {
             )
         }
 
+        function matchConditionalStart(i: number) {
+            return (
+                components[i + 1] instanceof Operator && (components[i + 1] as Operator).value == Operation.Optional &&
+                components[i + 3] instanceof Separator && (components[i + 3] as Separator).value == ":"
+            )
+        }
+
         for(let group of Operator.operationGroups) {
             for(let i = 0; i < components.length; i++) {
                 let left = components[i];
                 let middle = components[i + 1];
                 let right = components[i + 2];
+                let furtherRight = components[i + 3];
+                let evenFurtherRight = components[i + 4];
 
                 console.log("b", left, middle)
+
+                if(left instanceof Separator || middle instanceof Separator || right instanceof Separator) continue;
 
                 if(!middle) break;
                 
@@ -104,7 +119,41 @@ export class Expression extends SyntacticElement implements IHasType {
                 }
                 
                 if(left instanceof Operator || matchUnaryStart(left, middle)) continue; 
-                if(middle instanceof Operator && group[middle.value] == null) continue;
+                if(middle instanceof Operator && group[middle.value] === null) continue;
+
+                //conditional expressions
+                if(matchConditionalStart(i) && group[Operation.Conditional] !== null) {
+                    if(matchConditionalStart(i + 4)) {
+                        i += 3;
+                        
+                        continue;
+                    }
+
+                    console.log("eef")
+
+                    if(
+                        !(left instanceof Operator) &&
+                        !(right instanceof Operator) &&
+                        !(evenFurtherRight instanceof Operator || evenFurtherRight instanceof Separator)
+                    ) {
+                        let conditionalExpression = create(new ConditionalExpression(), obj => {
+                            obj.condition = left
+                            obj.trueCondition = right
+                            obj.falseCondition = evenFurtherRight
+
+                            obj.applyMetadata(left, evenFurtherRight)
+                        })
+
+                        components.splice(i, 5, conditionalExpression);
+                        i--;
+
+                        if(matchConditionalStart(i - 4)) {
+                            i -= 4;
+                        }
+
+                        continue;
+                    }
+                }
                 
                 //postfix unary expressions
                 if(middle instanceof Operator && group[middle.value] == OperationUse.Postfix) {
@@ -172,7 +221,7 @@ export class Expression extends SyntacticElement implements IHasType {
     }
 
     static read(self: Expression, builder: ElementBuilder) {
-        let components: (Expression | Operator)[] = [];
+        let components: (Component)[] = [];
 
         while(builder.going) {
             yourtakingtoolong();
@@ -191,6 +240,7 @@ export class Expression extends SyntacticElement implements IHasType {
                 Operator,
                 Literal,
                 Identifier,
+                Separator,
                 // Keyword,
             ]);
 

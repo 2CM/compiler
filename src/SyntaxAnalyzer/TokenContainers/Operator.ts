@@ -183,9 +183,9 @@ export class Operator extends TokenContainer<Operation> implements IEmitsIl {
             [Operation.AssignLogicalOr]: OperationUse.Binary,
             [Operation.AssignNullishCoalesce]: OperationUse.Binary,
         },
-        {
-            [Operation.Join]: OperationUse.Binary,
-        }
+        // {
+        //     [Operation.Join]: OperationUse.Binary,
+        // }
     ]
 
     static operatorStrToOperation = {
