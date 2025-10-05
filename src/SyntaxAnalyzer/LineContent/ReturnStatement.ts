@@ -13,7 +13,7 @@ export class ReturnStatement extends LineContent {
     static read(self: ReturnStatement, builder: ElementBuilder) {
         builder.advancePastExpectedValue("return");
 
-        if(!builder.checkValue(";")) {
+        if(!builder.matchValue(";")) {
             self.value = builder.readElement(Expression);
         }
 

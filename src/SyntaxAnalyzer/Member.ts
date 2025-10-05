@@ -24,7 +24,7 @@ export class Member extends SyntacticElement implements IGeneratesSemanticInform
         self.type = builder.readElement(Type);
         self.name = builder.readElement(Identifier);
         
-        if(builder.checkValue("(", "<")) {
+        if(builder.matchValue("(", "<")) {
             return builder.continueReadingAs(Method);
         } else {
             return builder.continueReadingAs(Field);

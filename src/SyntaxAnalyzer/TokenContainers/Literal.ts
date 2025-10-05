@@ -5,12 +5,15 @@ import { Scope } from "../../SemanticAnalyzer/Scope";
 import { ClassInformation } from "../../SemanticAnalyzer/ThingInformation/ClassInformation";
 import { NamespaceInformation } from "../../SemanticAnalyzer/ThingInformation/NamespaceInformation";
 import { TypeReference } from "../../SemanticAnalyzer/TypeReference";
-import { Token } from "../../Tokenizer/Token";
+import { Token, TokenType } from "../../Tokenizer/Token";
 import { colorWithType, create } from "../../Utils/Utils";
-import { TokenContainer } from "../TokenContainer";
+import { Expression } from "../Expressions/Expression";
+import { TokenContainer } from "./TokenContainer";
 import { Type } from "../Type";
 
-export class Literal extends TokenContainer<string | number | boolean> implements IEmitsIl, IHasType {
+export class Literal extends TokenContainer<string | number | boolean> implements Expression, IEmitsIl, IHasType {
+    static tokenType = TokenType.Literal;
+    
     typeReference: TypeReference;
 
     determineTypeReference(scope: Scope) {

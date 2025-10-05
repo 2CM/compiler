@@ -26,7 +26,7 @@ export class Body extends SyntacticElement implements IHasScope, ICreatesIlThing
         while(builder.going) {
             yourtakingtoolong();
 
-            if(builder.checkValue("}", "case", "default")) {
+            if(builder.matchValue("}", "case", "default")) {
                 break;
             }
 

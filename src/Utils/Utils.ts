@@ -266,7 +266,7 @@ declare global {
     }
 
     interface Array<T> {
-        joinInEnglish: (conjunction: string) => string
+        joinInEnglish: (conjunction: string) => string,
     }
 }
 

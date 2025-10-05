@@ -1,3 +1,180 @@
+import { IHasType } from "../../SemanticAnalyzer/IHasType";
+import { Scope } from "../../SemanticAnalyzer/Scope";
+import { TypeReference } from "../../SemanticAnalyzer/TypeReference";
+import { create, yourtakingtoolong } from "../../Utils/Utils";
+import { ElementBuilder } from "../ElementBuilder";
+import { SyntacticElement } from "../SyntacticElement";
+import { Identifier } from "../TokenContainers/Identifier";
+import { Keyword } from "../TokenContainers/Keyword";
+import { Literal } from "../TokenContainers/Literal";
+import { Operation, Operator } from "../TokenContainers/Operator";
+import { BinaryExpression } from "./BinaryExpression";
+import { CastExpression } from "./CastExpression";
+import { ElementAccessExpression } from "./ElementAccessExpression";
+import { InvocationExpression } from "./InvocationExpression";
+import { ParenthesizedExpression } from "./ParenthesizedExpression";
+import { UnaryExpression } from "./UnaryExpression";
+
+export class Expression extends SyntacticElement implements IHasType {
+    typeReference: TypeReference;
+
+    static tryResolveUnaryExpression(components: (Expression | Operator)[], i: number): {expression: Expression, size: number} {
+        let left = components[i];
+        let expression: Expression = components[i] as Expression;
+        let size = 1;
+
+        if(left instanceof Operator) {
+            let resolved = this.tryResolveUnaryExpression(components, i + 1);
+
+            size = resolved.size + 1;
+            expression = create(new UnaryExpression(), obj => {
+                obj.operator = left
+                obj.operand = resolved.expression
+            });
+        } else if(left instanceof ParenthesizedExpression && left.expression instanceof Identifier) { //cast
+            let resolved = this.tryResolveUnaryExpression(components, i + 1);
+
+            size = resolved.size + 1;
+            expression = create(new CastExpression(), obj => {
+                obj.left = left
+                obj.right = resolved.expression
+            });
+        }
+
+        return { expression, size };
+    }
+
+    static processComponents(components: (Expression | Operator)[]) {
+        console.log(components)
+
+        for(let i = 0; i < components.length; i++) {
+            let left = components[i];
+            let middle = components[i + 1];
+
+            if(!middle) break;
+
+            console.log(left, middle)
+
+            if(left instanceof Operator) continue;
+            
+            //optional expressions
+            if(middle instanceof Operator && middle.value == Operation.Optional) {
+                let optionalExpression = create(new UnaryExpression(), obj => {
+                    obj.operator = middle
+                    obj.operand = left
+
+                    obj.applyMetadata(left, middle)
+                })
+
+                components.splice(i, 2, optionalExpression);
+                
+                i--;
+                continue;
+            }
+            
+            //regular binary expressions (x + y)
+            if(middle instanceof Operator) {
+                let right = components[i + 2];
+
+                if(right instanceof Operator) throw new Error("evil");
+
+                let binaryExpression = create(new BinaryExpression(), obj => {
+                    obj.operator = middle
+                    obj.left = left
+                    obj.right = right
+
+                    obj.applyMetadata(left, right)
+                })
+
+                components.splice(i, 3, binaryExpression);
+                i--;
+            } else { //irregular binary expresssions (thing(somethingelse))
+                if(middle instanceof ParenthesizedExpression) {                    
+                    let expression: Expression | null = null;
+                    
+                    if(middle.openParentheses.value == "(") {
+                        expression = create(new InvocationExpression(), obj => {
+                            obj.target = left
+                            obj.arguments = middle
+
+                            obj.applyMetadata(left, middle)
+                        })
+                    } else if(middle.openParentheses.value == "[") {
+                        expression = create(new ElementAccessExpression(), obj => {
+                            obj.left = left
+                            obj.right = middle
+
+                            obj.applyMetadata(left, middle)
+                        })
+                    }
+
+                    if(!expression) throw new Error("qha");
+
+                    components.splice(i, 2, expression);
+                    i--;
+                } else {
+                    throw new Error("eijfef")
+                }
+            }
+        }
+        
+        console.log(components);
+        
+        return components[0] as Expression;
+    }
+
+    static read(self: Expression, builder: ElementBuilder) {
+        let components: (Expression | Operator)[] = [];
+
+        while(builder.going) {
+            yourtakingtoolong();
+
+            console.log(builder.current)
+
+            if(builder.matchValue("(", "[")) {
+                components.push(builder.readElement(ParenthesizedExpression));
+
+                continue;
+            }
+
+            if(builder.matchValue(")", "]")) break;
+                        
+            let value = builder.readElementFromPossibilities([
+                Operator,
+                Literal,
+                Identifier,
+                // Keyword,
+            ]);
+
+
+            if(!value) throw new Error("quog");
+
+            components.push(value);
+        }
+
+        builder.finish();
+
+        return create(this.processComponents(components), obj => {
+            obj.applyMetadata(self, self)
+        });
+    }
+
+    determineTypeReference(scope: Scope) {
+        
+    }
+}
+
+/*
+do it recursively
+
+await +-+-(Int32)(Float32)(5 + 2) + 1
+
+(Scene as Level).Buh();
+
+!(Object)(x as Bingle)?[1]?.buh + 1;
+*/
+
+/*
 import { Token, TokenType } from "../Tokenizer/Token";
 import { yourtakingtoolong, create } from "../Utils/Utils";
 import { ExpressionList } from "./ExpressionList";
@@ -6,7 +183,6 @@ import { Literal } from "./TokenContainers/Literal";
 import { Operation } from "./Operation";
 import { Operator } from "./TokenContainers/Operator";
 import { SyntacticElement } from "./SyntacticElement";
-import { Zingle } from "./Zingle";
 import { ElementBuilder } from "./ElementBuilder";
 import { Generic } from "./Generic";
 import { IEmitsIl, IlEmitter } from "../IntermediateCodeGenerator/IlEmitter";
@@ -14,6 +190,10 @@ import { TypeReference } from "../SemanticAnalyzer/TypeReference";
 import { IHasType } from "../SemanticAnalyzer/IHasType";
 import { Scope } from "../SemanticAnalyzer/Scope";
 import { Keyword } from "./TokenContainers/Keyword";
+
+export class Expression {
+
+}
 
 type Component = Zingle | Operator;
 
@@ -245,6 +425,7 @@ export class Expression extends SyntacticElement implements IEmitsIl, IHasType {
         // this.operation.emitIl(emitter);
     }
 }
+*/
 
 /*
 bingle.zingle[0] = hello(Int32 buh = 5, bongle.b);

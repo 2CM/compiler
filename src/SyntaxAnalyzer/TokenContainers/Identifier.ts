@@ -4,9 +4,14 @@ import { IdentifierInformation, IdentifierReferenceType } from "../../SemanticAn
 import { IHasType } from "../../SemanticAnalyzer/IHasType";
 import { Scope } from "../../SemanticAnalyzer/Scope";
 import { TypeReference } from "../../SemanticAnalyzer/TypeReference";
-import { TokenContainer } from "../TokenContainer";
+import { TokenType } from "../../Tokenizer/Token";
+import { ElementMatcher } from "../ElementMatcher";
+import { Expression } from "../Expressions/Expression";
+import { TokenContainer } from "./TokenContainer";
 
-export class Identifier extends TokenContainer<string> implements IEmitsIl, IHasType {
+export class Identifier extends TokenContainer<string> implements Expression, IEmitsIl, IHasType {
+    static tokenType = TokenType.Identifier;
+    
     typeReference: TypeReference;
 
     determineTypeReference(scope: Scope) {

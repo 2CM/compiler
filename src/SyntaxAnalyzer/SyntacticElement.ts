@@ -3,7 +3,6 @@ import { Token } from "../Tokenizer/Token";
 import { create, getAnsiColorCode, ignoreInLogging, indentationString, syntaxColors } from "../Utils/Utils";
 import { ElementBuilder } from "./ElementBuilder";
 import { ElementMatcher } from "./ElementMatcher";
-import { Zingle } from "./Zingle";
 
 export class SyntacticElement {
     @ignoreInLogging()
@@ -136,6 +135,12 @@ export class SyntacticElement {
 
     static read(self: SyntacticElement, builder: ElementBuilder): SyntacticElement {
         return new SyntacticElement();
+    }
+
+    applyMetadata(lower: SyntacticElement, upper: SyntacticElement) {
+        this.tokenSource = lower.tokenSource;
+        this.startIndex = lower.startIndex;
+        this.endIndex = upper.endIndex;
     }
 
     // static fromTokens(tokens: Token[], startIndex: number): SyntacticElement {

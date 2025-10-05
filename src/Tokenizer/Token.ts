@@ -1,5 +1,3 @@
-import { Operation } from "../SyntaxAnalyzer/Operation";
-import { Keyword } from "../SyntaxAnalyzer/TokenContainers/Keyword";
 import { cleanStringForRegex, color, create, enumValue, ignoreInLogging, syntaxColors, yourtakingtoolong } from "../Utils/Utils";
 
 export enum TokenType {
@@ -9,6 +7,9 @@ export enum TokenType {
     Keyword,
     Operator,
 }
+
+import { Keyword } from "../SyntaxAnalyzer/TokenContainers/Keyword";
+import { Operator } from "../SyntaxAnalyzer/TokenContainers/Operator";
 
 export class Token {
     @enumValue(Token, TokenType)
@@ -51,7 +52,7 @@ export class Token {
     static stringToTokens(str: string): Token[] {
         let tokens: Token[] = [];
         let index = 0;
-        let operatorMatch = Object.keys(Operation.operatorStrToOperation)
+        let operatorMatch = Object.keys(Operator.operatorStrToOperation)
             .sort((a,b) => a.length > b.length ? -1 : 1)
             .map(cleanStringForRegex)
             .join("|");

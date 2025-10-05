@@ -26,7 +26,7 @@ export class ModifierList extends SyntacticElement implements ICreatesIlThing<IL
         while(builder.going) {
             yourtakingtoolong();
 
-            if(!builder.checkValue(...Keyword.modifierKeywords)) break;
+            if(!builder.matchValue(...Keyword.modifierKeywords)) break;
 
             self.body.push(builder.readElement(Keyword));
         }

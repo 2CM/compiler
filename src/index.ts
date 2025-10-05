@@ -1,9 +1,8 @@
 import { SemanticTree } from "./SemanticAnalyzer/SemanticTree";
 import { ElementBuilder } from "./SyntaxAnalyzer/ElementBuilder";
-import { Expression } from "./SyntaxAnalyzer/Expression";
+import { Expression } from "./SyntaxAnalyzer/Expressions/Expression";
 import { SyntaxTree } from "./SyntaxAnalyzer/SyntaxTree";
 import { Type } from "./SyntaxAnalyzer/Type";
-import { Zingle } from "./SyntaxAnalyzer/Zingle";
 import { Token } from "./Tokenizer/Token";
 import { create, ignoreInLogging } from "./Utils/Utils";
 
@@ -35,35 +34,10 @@ import { create, ignoreInLogging } from "./Utils/Utils";
 // }
 // `);
 
-var tokenized = Token.stringToTokens(`
-namespace System {
-    public class Int32 {}
-    public class String {}
-}
-
-public class Animal {
-    public int Age;
-    public int SomeOtherThing;
-    public Animal Mother;
-
-    public int Buh(int zuh) {
-
-    }
-}
-
-public class Dog : Animal {
-    public int Teeth; //i need to find a better way of testing this
-
-    public int DoSomething(int bingleBuh, Animal enemy) {
-        Animal z = new Animal.SubClass().Mother;
-    
-        // this.Mother.Mother.Buh(this.Mother.Age);
-    }
-}
-`);
+var tokenized = Token.stringToTokens(`bingle[bong]`);
 
 
-let tree = ElementBuilder.readFromTokens(tokenized, 0, SyntaxTree);
+let tree = ElementBuilder.readFromTokens(tokenized, 0, Expression);
 
 // tree.registerIdentifiers();
 
@@ -71,7 +45,7 @@ let tree = ElementBuilder.readFromTokens(tokenized, 0, SyntaxTree);
 
 // console.log(tree);
 
-let semanticTree = new SemanticTree();
+// let semanticTree = new SemanticTree();
 
 //tree.generateSemanticOutline(semanticTree.root);
 

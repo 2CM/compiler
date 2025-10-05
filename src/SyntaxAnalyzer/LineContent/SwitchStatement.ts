@@ -16,7 +16,7 @@ export class SwitchSection extends SyntacticElement {
 
     static read(self: SwitchSection, builder: ElementBuilder) {
         if(builder.advancePastValue("case")) {
-            if(builder.checkType(TokenType.Operator)) {
+            if(builder.matchType(TokenType.Operator)) {
                 self.operator = builder.readElement(Operator);
             }
 
@@ -53,7 +53,7 @@ export class SwitchStatement extends LineContent {
         while(builder.going) {
             yourtakingtoolong();
             
-            if(builder.checkValue("}")) {
+            if(builder.matchValue("}")) {
                 break;
             }
             

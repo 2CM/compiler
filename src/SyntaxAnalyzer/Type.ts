@@ -65,7 +65,7 @@ export class Type extends SyntacticElement {
     }
 
     static read(self: Type, builder: ElementBuilder) {
-        if(builder.checkType(TokenType.Keyword) && builder.checkValue(...Keyword.typeKeywords)) {
+        if(builder.matchType(TokenType.Keyword) && builder.matchValue(...Keyword.typeKeywords)) {
             self.keywordType = builder.readElement(Keyword);
 
             return builder.finish();
