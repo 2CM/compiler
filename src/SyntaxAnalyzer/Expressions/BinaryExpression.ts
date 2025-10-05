@@ -1,7 +1,7 @@
 import { Scope } from "../../SemanticAnalyzer/Scope";
 import { TypeReference } from "../../SemanticAnalyzer/TypeReference";
 import { SyntacticElement } from "../SyntacticElement";
-import { Operator } from "../TokenContainers/Operator";
+import { Operation, Operator } from "../TokenContainers/Operator";
 import { Expression } from "./Expression";
 
 export class BinaryExpression extends SyntacticElement implements Expression {

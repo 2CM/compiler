@@ -34,7 +34,7 @@ import { create, ignoreInLogging } from "./Utils/Utils";
 // }
 // `);
 
-var tokenized = Token.stringToTokens(`1 ? 2 : 3 ? 4 : 5`);
+var tokenized = Token.stringToTokens(`s[1][2][3,4]`);
 
 
 let tree = ElementBuilder.readFromTokens(tokenized, 0, Expression);

@@ -2,6 +2,7 @@ import { IHasType } from "../../SemanticAnalyzer/IHasType";
 import { Scope } from "../../SemanticAnalyzer/Scope";
 import { TypeReference } from "../../SemanticAnalyzer/TypeReference";
 import { create, yourtakingtoolong } from "../../Utils/Utils";
+import { ArgumentList } from "../ArgumentList";
 import { ElementBuilder } from "../ElementBuilder";
 import { SyntacticElement } from "../SyntacticElement";
 import { Identifier } from "../TokenContainers/Identifier";
@@ -51,13 +52,13 @@ export class Expression extends SyntacticElement implements IHasType {
     static processComponents(components: (Component)[]) {
         console.log(components);
 
-        function matchUnaryStart(left: Component, right: Component) {
+        function matchUnaryStart(i: number) {
             return (
-                left instanceof Operator ||
+                components[i] instanceof Operator ||
                 (
-                    left instanceof ParenthesizedExpression &&
-                    left.expression instanceof Identifier &&
-                    !(right instanceof Operator)
+                    components[i + 1] instanceof ParenthesizedExpression &&
+                    (components[i + 1] as ParenthesizedExpression).expression instanceof Identifier &&
+                    !(components[i + 1] instanceof Operator)
                 )
             )
         }
@@ -77,18 +78,18 @@ export class Expression extends SyntacticElement implements IHasType {
                 let furtherRight = components[i + 3];
                 let evenFurtherRight = components[i + 4];
 
-                console.log("b", left, middle)
+                // console.log("b", left, middle)
 
                 if(left instanceof Separator || middle instanceof Separator || right instanceof Separator) continue;
 
                 if(!middle) break;
                 
                 //prefix unary expressions
-                if(matchUnaryStart(left, middle)) {
+                if(matchUnaryStart(i)) {
                     let operation = left instanceof Operator ? left.value : Operation.Cast;
 
                     if(group[operation] == OperationUse.Prefix) {
-                        if(middle instanceof Operator || matchUnaryStart(middle, right)) continue;
+                        if(middle instanceof Operator || matchUnaryStart(i + 1)) continue;
 
                         let expression: Expression | null = null;
 
@@ -113,13 +114,13 @@ export class Expression extends SyntacticElement implements IHasType {
                         components.splice(i, 2, expression);
 
                         i--;
-                        if(matchUnaryStart(components[i], components[i + 1])) i--;
+                        if(matchUnaryStart(i)) i--;
                         continue;
                     }
                 }
                 
-                if(left instanceof Operator || matchUnaryStart(left, middle)) continue; 
-                if(middle instanceof Operator && group[middle.value] === null) continue;
+                if(left instanceof Operator || matchUnaryStart(i)) continue; 
+                if(middle instanceof Operator && group[middle.value] == null) continue;
 
                 //conditional expressions
                 if(matchConditionalStart(i) && group[Operation.Conditional] !== null) {
@@ -128,8 +129,6 @@ export class Expression extends SyntacticElement implements IHasType {
                         
                         continue;
                     }
-
-                    console.log("eef")
 
                     if(
                         !(left instanceof Operator) &&
@@ -191,7 +190,7 @@ export class Expression extends SyntacticElement implements IHasType {
                         if(middle.openParentheses.value == "(" && group[Operation.Invoke] == OperationUse.Binary) {
                             expression = create(new InvocationExpression(), obj => {
                                 obj.target = left
-                                obj.arguments = middle
+                                obj.arguments = ArgumentList.fromExpression(middle)
 
                                 obj.applyMetadata(left, middle)
                             })
